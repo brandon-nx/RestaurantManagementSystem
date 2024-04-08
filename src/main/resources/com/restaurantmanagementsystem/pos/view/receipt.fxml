@@ -10,42 +10,30 @@
             <Text fx:id="restaurantName" style="-fx-font-weight: bold; -fx-font-size: 16px;" text="Big Bite Restaurant" />
             <Text fx:id="restaurantInfo" text="123, Jalan 123, One Heights,\nJohor, Malaysia\nTEL : 123456789" />
             <Separator />
-            <GridPane fx:id="itemsGrid" alignment="TOP_LEFT" hgap="10" vgap="5">
+            <GridPane fx:id="itemsGrid" hgap="10" vgap="5">
                 <!-- ColumnConstraints can be added here to set min/max width and alignment -->
             </GridPane>
             <Separator />
-            <HBox alignment="TOP_LEFT">
+            <HBox>
                 <Label text="SUBTOTAL:" />
                 <Pane HBox.hgrow="ALWAYS" />
                 <Label fx:id="subtotalPrice" alignment="TOP_RIGHT" />
             </HBox>
-            <HBox alignment="TOP_LEFT">
+            <HBox>
                 <Label text="SERVICE CHG:" />
                 <Pane HBox.hgrow="ALWAYS" />
                 <Label fx:id="serviceChargePrice" alignment="TOP_RIGHT" />
             </HBox>
-            <HBox alignment="TOP_LEFT">
+            <HBox>
                 <Label text="GOVT TAX:" />
                 <Pane HBox.hgrow="ALWAYS" />
                 <Label fx:id="taxPrice" alignment="TOP_RIGHT" />
             </HBox>
-            <HBox alignment="TOP_LEFT">
+            <HBox>
                 <Label text="TOTAL:" />
                 <Pane HBox.hgrow="ALWAYS" />
                 <Label fx:id="totalPrice" alignment="TOP_RIGHT" />
             </HBox>
-            <Separator />
-            <HBox alignment="TOP_LEFT">
-                <Label text="CASH:" />
-                <Pane HBox.hgrow="ALWAYS" />
-                <Label fx:id="cashGivenPrice" alignment="TOP_RIGHT" />
-            </HBox>
-            <HBox alignment="TOP_LEFT">
-                <Label text="CHANGE:" />
-                <Pane HBox.hgrow="ALWAYS" />
-                <Label fx:id="changePrice" alignment="TOP_RIGHT" />
-            </HBox>
-            <Separator />
             <Label fx:id="footerLabel" />
         </VBox>
     </ScrollPane>

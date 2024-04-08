@@ -4,11 +4,13 @@ public class MenuItem {
     private String name;
     private double price;
     private String imagePath;
+    private String category;
 
-    public MenuItem(String name, double price, String imagePath) {
+    public MenuItem(String name, double price, String imagePath, String category) {
         this.name = name;
         this.price = price;
         this.imagePath = imagePath;
+        this.category = category;
     }
 
     // Getters and Setters

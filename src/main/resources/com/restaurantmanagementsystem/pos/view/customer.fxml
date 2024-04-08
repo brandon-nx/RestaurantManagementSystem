@@ -17,12 +17,12 @@
                 </ImageView>
                 <Text fill="WHITE" style="-fx-font-size: 20;-fx-background-color: transparent; -fx-text-fill: white;" text="Big Bite Restaurant" />
                 <Text fx:id="welcomeText" fill="WHITE" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Welcome, Customer" />
-                <Button contentDisplay="CENTER" minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Appetizers" />
+                <Button fx:id="appetizersButton" text="Appetizers" minWidth="150" onAction="#handleCategoryButtonAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
                 <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Entrées" />
                 <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Sides" />
                 <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Desserts" />
                 <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Beverages" />
-                <Button fx:id="signOutButton" minWidth="150" onAction="#handleSignOutAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Sign Out" />
+                <Button fx:id="signOutButton" text="Sign Out" minWidth="150" onAction="#handleSignOutAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
             </VBox>
         </left>
         <center>
@@ -64,7 +64,7 @@
                     <Button fx:id="confirmOrderButton" text="Confirm Order" onAction="#handleConfirmOrderAction" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
                 </HBox>
                 <HBox VBox.vgrow="NEVER">
-                    <Button text="Receipt" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                    <Button fx:id="receiptButton" text="Receipt" onAction="#handleReceiptAction" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
                 </HBox>
             </VBox>
         </right>

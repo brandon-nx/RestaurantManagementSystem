@@ -9,7 +9,7 @@ public class MenuDaoImpl implements MenuDao {
     @Override
     public List<MenuItem> getMenuItemsFromDatabase() {
         List<MenuItem> menuItems = new ArrayList<>();
-        String sql = "SELECT name, price, image_path FROM menu_items";
+        String sql = "SELECT name, price, image_path, category FROM menu_items";
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -19,7 +19,8 @@ public class MenuDaoImpl implements MenuDao {
                 String name = rs.getString("name");
                 double price = rs.getDouble("price");
                 String imagePath = rs.getString("image_path");
-                menuItems.add(new MenuItem(name, price, imagePath));
+                String category = rs.getString("category");
+                menuItems.add(new MenuItem(name, price, imagePath, category));
             }
 
         } catch (SQLException e) {

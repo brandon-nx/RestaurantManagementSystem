@@ -2,10 +2,11 @@ package com.restaurantmanagementsystem.pos.controller;
 
 import com.restaurantmanagementsystem.pos.model.OrderItem;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -27,13 +28,9 @@ public class ReceiptController {
     @FXML
     private Label totalPrice;
     @FXML
-    private Label cashGivenPrice;
-    @FXML
-    private Label changePrice;
-    @FXML
     private Label footerLabel;
 
-    public void setReceiptDetails(List<OrderItem> orderItems, double subtotal, double serviceCharge, double tax, double total, double cashGiven, double change) {
+    public void setReceiptDetails(List<OrderItem> orderItems, double subtotal, double serviceCharge, double tax, double total) {
         itemsGrid.getChildren().clear(); // Clear previous items if needed
 
         // Create header with restaurant information
@@ -47,9 +44,13 @@ public class ReceiptController {
             Label quantityLabel = new Label(String.format("x%d", item.getQuantity()));
             Label priceLabel = new Label(String.format("$%.2f", item.getPrice()));
 
-            itemsGrid.add(nameLabel, 0, i);
-            itemsGrid.add(quantityLabel, 1, i);
+            itemsGrid.add(quantityLabel, 0, i);
+            itemsGrid.add(nameLabel, 1, i);
             itemsGrid.add(priceLabel, 2, i);
+
+            priceLabel.setAlignment(Pos.TOP_RIGHT);
+            priceLabel.setMaxWidth(Double.MAX_VALUE);
+            GridPane.setHgrow(priceLabel, Priority.ALWAYS);
         }
 
         // Set text for subtotal, service charge, etc.
@@ -57,8 +58,6 @@ public class ReceiptController {
         serviceChargePrice.setText(String.format("$%.2f", serviceCharge));
         taxPrice.setText(String.format("$%.2f", tax));
         totalPrice.setText(String.format("$%.2f", total));
-        cashGivenPrice.setText(String.format("$%.2f", cashGiven));
-        changePrice.setText(String.format("$%.2f", change));
 
         // Set footer date and time
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");

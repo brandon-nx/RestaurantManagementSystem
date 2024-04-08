@@ -25,15 +25,15 @@ import javafx.util.Callback;
 
 import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class CustomerController {
     public Button clearOrderButton;
     public Button confirmOrderButton;
+    public Button receiptButton;
+    public Button appetizersButton;
     @FXML
     private Text welcomeText;
     @FXML
@@ -52,6 +52,7 @@ public class CustomerController {
     @FXML
     private VBox centerVBox;
     private MenuDao menuDao = new MenuDaoImpl();
+    private final List<OrderItem> allConfirmedOrders = new ArrayList<>();
 
 
     @FXML
@@ -134,7 +135,8 @@ public class CustomerController {
     // Load Menu Display
     private void loadMenuItems() {
         List<MenuItem> menuItems = menuDao.getMenuItemsFromDatabase();
-        HBox currentRow = createRow(); // We'll create the createRow method to handle row creation
+        HBox currentRow = createRow();
+        centerVBox.getChildren().clear();
 
         int count = 0;
         for (MenuItem menuItem : menuItems) {
@@ -142,18 +144,23 @@ public class CustomerController {
                 currentRow = createRow();
             }
 
-            VBox itemVBox = new VBox(10);
-            itemVBox.setAlignment(Pos.CENTER);
-            ImageView imageView = createImageView(menuItem.getImagePath());
-            Text itemName = new Text(menuItem.getName() + " RM" + menuItem.getPrice());
-            Button addButton = new Button("Add");
-            addButton.setOnAction(this::handleAddItemAction);
-            addButton.setUserData(new OrderItem(menuItem.getName(), 1, menuItem.getPrice()));
-
-            itemVBox.getChildren().addAll(imageView, itemName, addButton);
+            VBox itemVBox = createMenuItemVBox(menuItem);
             currentRow.getChildren().add(itemVBox);
             count++;
         }
+    }
+
+    private VBox createMenuItemVBox(MenuItem menuItem) {
+        VBox itemVBox = new VBox(10);
+        itemVBox.setAlignment(Pos.CENTER);
+        ImageView imageView = createImageView(menuItem.getImagePath());
+        Text itemName = new Text(menuItem.getName() + " RM" + menuItem.getPrice());
+        Button addButton = new Button("Add");
+        addButton.setOnAction(this::handleAddItemAction);
+        addButton.setUserData(new OrderItem(menuItem.getName(), 1, menuItem.getPrice()));
+
+        itemVBox.getChildren().addAll(imageView, itemName, addButton);
+        return itemVBox;
     }
 
     private HBox createRow() {
@@ -229,7 +236,13 @@ public class CustomerController {
     // Clear Order Button
     @FXML
     private void handleClearOrderAction() {
-        // Confirm the action with the user before clearing the order
+        if (orderItems.isEmpty()) {
+            Alert emptyOrderAlert = new Alert(Alert.AlertType.WARNING, "No items in the order. Please add food to your order before confirming.");
+            emptyOrderAlert.setHeaderText("Empty Order");
+            emptyOrderAlert.showAndWait();
+            return;
+        }
+
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION, "Clear the entire order?", ButtonType.YES, ButtonType.NO);
         confirmAlert.setHeaderText(null);
         Optional<ButtonType> result = confirmAlert.showAndWait();
@@ -247,33 +260,109 @@ public class CustomerController {
     // Confirm Order Button
     @FXML
     private void handleConfirmOrderAction() {
+        if (orderItems.isEmpty()) {
+            Alert emptyOrderAlert = new Alert(Alert.AlertType.WARNING, "No items in the order. Please add food to your order before confirming.");
+            emptyOrderAlert.setHeaderText("Empty Order");
+            emptyOrderAlert.showAndWait();
+            return;
+        }
+
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION, "Do you want to confirm the order?");
+        confirmAlert.setTitle("Confirm Order");
+        confirmAlert.setHeaderText(null);
+
+        Optional<ButtonType> result = confirmAlert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/receipt.fxml"));
+                Parent root = loader.load();
+                ReceiptController controller = loader.getController();
+
+                // Calculate the order details
+                double subtotal = orderItems.stream()
+                        .mapToDouble(item -> item.getQuantity() * item.getPrice())
+                        .sum();
+                double serviceCharge = subtotal * 0.10;
+                double tax = subtotal * 0.06;
+                double total = subtotal + serviceCharge + tax;
+
+                // Pass order details to the ReceiptViewController
+                controller.setReceiptDetails(orderItems, subtotal, serviceCharge, tax, total);
+
+                // Add current orderItems to allConfirmedOrders
+                allConfirmedOrders.addAll(orderItems);
+
+                // Clear current order details
+                orderItems.clear();
+                orderDetailsTable.refresh();
+                totalText.setText("Total: RM0.0");
+
+                // Show order confirmed
+                Alert orderConfirmedAlert = new Alert(Alert.AlertType.INFORMATION, "Order has been confirmed!");
+                orderConfirmedAlert.showAndWait();
+
+                // Show receipt window
+                Stage stage = new Stage();
+                stage.setScene(new Scene(root));
+                stage.setTitle("Receipt");
+                stage.initModality(Modality.APPLICATION_MODAL);
+                stage.showAndWait();
+            } catch (IOException e) {
+                e.printStackTrace();
+                // Handle exception
+            }
+        } else {
+            // If user selects cancel, do nothing and return to order screen
+        }
+    }
+
+    // Receipt Button Action
+    @FXML
+    private void handleReceiptAction() {
+        if (allConfirmedOrders.isEmpty()) {
+            Alert noOrdersAlert = new Alert(Alert.AlertType.INFORMATION, "There are no past orders to display.");
+            noOrdersAlert.setHeaderText("No Past Orders");
+            noOrdersAlert.showAndWait();
+            return;
+        }
+
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/receipt.fxml"));
             Parent root = loader.load();
             ReceiptController controller = loader.getController();
 
-            // Calculate the order details
-            double subtotal = orderItems.stream()
+            // Calculate the totals from allConfirmedOrders
+            double subtotal = allConfirmedOrders.stream()
                     .mapToDouble(item -> item.getQuantity() * item.getPrice())
                     .sum();
             double serviceCharge = subtotal * 0.10;
             double tax = subtotal * 0.06;
             double total = subtotal + serviceCharge + tax;
-            double cashGiven = 150; // the amount of cash given by customer
-            double change = cashGiven - total;
 
-            // Pass order details to the ReceiptViewController
-            controller.setReceiptDetails(orderItems, subtotal, serviceCharge, tax, total, cashGiven, change);
+            // Pass allConfirmedOrders details to the ReceiptController
+            controller.setReceiptDetails(allConfirmedOrders, subtotal, serviceCharge, tax, total);
 
             // Show receipt window
             Stage stage = new Stage();
             stage.setScene(new Scene(root));
-            stage.setTitle("Receipt");
+            stage.setTitle("Cumulative Receipt");
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.showAndWait();
         } catch (IOException e) {
             e.printStackTrace();
             // Handle exception
         }
+    }
+
+    // Side Bar Menu Category Buttons
+    public void handleCategoryAction(ActionEvent event) {
+        Button btn = (Button)event.getSource();
+        String category = btn.getText();
+        List<MenuItem> itemsByCategory = menuDao.getMenuItemsFromDatabase();
+    }
+
+    @FXML
+    private void handleCategoryButtonAction(ActionEvent event) {
+        handleCategoryAction(event);
     }
 }
