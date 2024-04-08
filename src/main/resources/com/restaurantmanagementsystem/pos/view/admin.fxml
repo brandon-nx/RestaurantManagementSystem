@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.AdminController">
+    <BorderPane prefHeight="600.0" prefWidth="1000.0">
+        <top>
+            <MenuBar BorderPane.alignment="CENTER">
+                <menus>
+                    <Menu text="File">
+                        <items>
+                            <MenuItem text="Sign Out" />
+                        </items>
+                    </Menu>
+                </menus>
+            </MenuBar>
+        </top>
+        <left>
+            <VBox alignment="TOP_CENTER" prefHeight="574.0" prefWidth="109.0" spacing="10" style="-fx-background-color: #000000; -fx-padding: 10;" BorderPane.alignment="CENTER">
+                <ImageView fitHeight="100" fitWidth="100" pickOnBounds="true" preserveRatio="true">
+                    <image>
+                        <Image url="@/logo.png" />
+                    </image>
+                </ImageView>
+                <Text fill="WHITE" style="-fx-font-size: 20;-fx-background-color: transparent; -fx-text-fill: white;" text="Big Bite Restaurant" />
+                <Text fx:id="welcomeText" fill="WHITE" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Welcome, Admin111" />
+                <Button contentDisplay="CENTER" minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Dashboard" />
+                <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Inventory" />
+                <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Menu" />
+                <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Customers" />
+                <Button fx:id="signOutButton" text="Sign Out" onAction="#handleSignOutAction" minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;"/>
+            </VBox>
+        </left>
+        <center>
+            <SplitPane dividerPositions="0.6" orientation="VERTICAL">
+                <VBox>
+                    <TableView fx:id="productTable">
+                        <columns>
+                            <TableColumn text="Product ID" />
+                            <TableColumn text="Product Name" />
+                            <TableColumn text="Type" />
+                            <TableColumn text="Stock" />
+                            <TableColumn text="Price" />
+                            <TableColumn text="Status" />
+                            <TableColumn text="Date" />
+                        </columns>
+                    </TableView>
+                </VBox>
+                <VBox spacing="10">
+                    <HBox spacing="15">
+                        <Label text="Product ID:" />
+                        <TextField fx:id="productIdField" />
+                    </HBox>
+                    <HBox spacing="15">
+                        <Label text="Product Name:" />
+                        <TextField fx:id="productNameField" />
+                    </HBox>
+                    <HBox spacing="15">
+                        <Label text="Type:" />
+                        <ComboBox fx:id="typeComboBox" />
+                    </HBox>
+                    <HBox spacing="15">
+                        <Label text="Stock:" />
+                        <TextField fx:id="stockField" />
+                    </HBox>
+                    <HBox spacing="15">
+                        <Label text="Price ($):" />
+                        <TextField fx:id="priceField" />
+                    </HBox>
+                    <HBox spacing="15">
+                        <Label text="Status:" />
+                        <ComboBox fx:id="statusComboBox" />
+                    </HBox>
+                    <HBox spacing="15">
+    <!--                    <Button text="Add" onAction="#handleAddAction" />-->
+    <!--                    <Button text="Update" onAction="#handleUpdateAction" />-->
+    <!--                    <Button text="Clear" onAction="#handleClearAction" />-->
+    <!--                    <Button text="Delete" onAction="#handleDeleteAction" />-->
+                    </HBox>
+                </VBox>
+            </SplitPane>
+        </center>
+    </BorderPane>
+</AnchorPane>
