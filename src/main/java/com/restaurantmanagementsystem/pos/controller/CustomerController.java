@@ -19,24 +19,27 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
 public class CustomerController {
+    public Button clearOrderButton;
+    public Button confirmOrderButton;
     @FXML
     private Text welcomeText;
     @FXML
     private Text totalText;
     @FXML
     private Button signOutButton;
-    @FXML
-    private Button removeButton;
-
     @FXML
     private TableView<OrderItem> orderDetailsTable;
     @FXML
@@ -45,9 +48,7 @@ public class CustomerController {
     private TableColumn<OrderItem, Number> quantityColumn;
     @FXML
     private TableColumn<OrderItem, Number> priceColumn;
-
     private ObservableList<OrderItem> orderItems = FXCollections.observableArrayList();
-
     @FXML
     private VBox centerVBox;
     private MenuDao menuDao = new MenuDaoImpl();
@@ -61,6 +62,7 @@ public class CustomerController {
         priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
 
         orderDetailsTable.setItems(orderItems);
+        handleRemoveItemAction();
         loadMenuItems();
     }
 
@@ -68,6 +70,8 @@ public class CustomerController {
         welcomeText.setText("Welcome, " + username);
     }
 
+
+    // Sign Out Button
     @FXML
     private void handleSignOutAction() {
         // Create a confirmation dialog.
@@ -97,6 +101,7 @@ public class CustomerController {
         }
     }
 
+    // Add Item Button
     @FXML
     private void handleAddItemAction(ActionEvent event) {
         Button addButton = (Button) event.getSource();
@@ -122,10 +127,11 @@ public class CustomerController {
         double total = orderItems.stream()
                 .mapToDouble(item -> item.getQuantity() * item.getPrice())
                 .sum();
-        totalText.setText(String.format("Total: $%.2f", total));
+        totalText.setText(String.format("Total: RM%.2f", total));
     }
 
 
+    // Load Menu Display
     private void loadMenuItems() {
         List<MenuItem> menuItems = menuDao.getMenuItemsFromDatabase();
         HBox currentRow = createRow(); // We'll create the createRow method to handle row creation
@@ -139,7 +145,7 @@ public class CustomerController {
             VBox itemVBox = new VBox(10);
             itemVBox.setAlignment(Pos.CENTER);
             ImageView imageView = createImageView(menuItem.getImagePath());
-            Text itemName = new Text(menuItem.getName() + " $" + menuItem.getPrice());
+            Text itemName = new Text(menuItem.getName() + " RM" + menuItem.getPrice());
             Button addButton = new Button("Add");
             addButton.setOnAction(this::handleAddItemAction);
             addButton.setUserData(new OrderItem(menuItem.getName(), 1, menuItem.getPrice()));
@@ -189,25 +195,85 @@ public class CustomerController {
         return imageView;
     }
 
-    @FXML
+    // Remove Button
     private void handleRemoveItemAction() {
-        OrderItem selectedItem = orderDetailsTable.getSelectionModel().getSelectedItem();
-        if (selectedItem != null) {
-            // Remove the selected item from the list
-            orderItems.remove(selectedItem);
+        TableColumn<OrderItem, Void> actionCol = new TableColumn<>("Actions");
+
+        Callback<TableColumn<OrderItem, Void>, TableCell<OrderItem, Void>> cellFactory = param -> new TableCell<>() {
+            private final Button btnRemove = new Button("Remove");
+
+            {
+                btnRemove.setOnAction(event -> {
+                    OrderItem item = getTableView().getItems().get(getIndex());
+                    orderItems.remove(item);
+                    calculateTotal();
+                });
+            }
+
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(btnRemove);
+                }
+            }
+        };
+
+        actionCol.setCellFactory(cellFactory);
+
+        orderDetailsTable.getColumns().add(actionCol);
+    }
+
+    // Clear Order Button
+    @FXML
+    private void handleClearOrderAction() {
+        // Confirm the action with the user before clearing the order
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION, "Clear the entire order?", ButtonType.YES, ButtonType.NO);
+        confirmAlert.setHeaderText(null);
+        Optional<ButtonType> result = confirmAlert.showAndWait();
+
+        if (result.isPresent() && result.get() == ButtonType.YES) {
+            // Clear the entire order
+            orderItems.clear();
+            // Refresh the TableView
             orderDetailsTable.refresh();
-            calculateTotal(); // Recalculate the total after removal
-        } else {
-            // Show alert if no item is selected
-            showAlert("No item selected", "Please select an item to remove.");
+            // Reset the total amount
+            calculateTotal();
         }
     }
 
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
+    // Confirm Order Button
+    @FXML
+    private void handleConfirmOrderAction() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/receipt.fxml"));
+            Parent root = loader.load();
+            ReceiptController controller = loader.getController();
+
+            // Calculate the order details
+            double subtotal = orderItems.stream()
+                    .mapToDouble(item -> item.getQuantity() * item.getPrice())
+                    .sum();
+            double serviceCharge = subtotal * 0.10;
+            double tax = subtotal * 0.06;
+            double total = subtotal + serviceCharge + tax;
+            double cashGiven = 150; // the amount of cash given by customer
+            double change = cashGiven - total;
+
+            // Pass order details to the ReceiptViewController
+            controller.setReceiptDetails(orderItems, subtotal, serviceCharge, tax, total, cashGiven, change);
+
+            // Show receipt window
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Receipt");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Handle exception
+        }
     }
 }

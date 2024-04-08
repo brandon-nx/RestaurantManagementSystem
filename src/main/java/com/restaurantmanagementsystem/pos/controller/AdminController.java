@@ -4,10 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
@@ -15,6 +12,12 @@ import java.io.IOException;
 import java.util.Optional;
 
 public class AdminController {
+    public ComboBox statusComboBox;
+    public TextField priceField;
+    public TextField stockField;
+    public ComboBox typeComboBox;
+    public TextField productNameField;
+    public TextField productIdField;
     @FXML
     private Text welcomeText;
     @FXML

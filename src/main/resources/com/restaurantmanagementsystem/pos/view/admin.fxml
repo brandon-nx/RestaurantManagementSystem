@@ -3,21 +3,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.text.*?>
 <?import javafx.scene.image.*?>
-<?import javafx.geometry.*?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.AdminController">
     <BorderPane prefHeight="600.0" prefWidth="1000.0">
-        <top>
-            <MenuBar BorderPane.alignment="CENTER">
-                <menus>
-                    <Menu text="File">
-                        <items>
-                            <MenuItem text="Sign Out" />
-                        </items>
-                    </Menu>
-                </menus>
-            </MenuBar>
-        </top>
         <left>
             <VBox alignment="TOP_CENTER" prefHeight="574.0" prefWidth="109.0" spacing="10" style="-fx-background-color: #000000; -fx-padding: 10;" BorderPane.alignment="CENTER">
                 <ImageView fitHeight="100" fitWidth="100" pickOnBounds="true" preserveRatio="true">

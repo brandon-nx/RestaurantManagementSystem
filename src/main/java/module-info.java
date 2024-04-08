@@ -10,6 +10,8 @@ module com.restaurantmanagementsystem {
     opens com.restaurantmanagementsystem.pos.db to javafx.fxml;
     opens com.restaurantmanagementsystem.pos.controller to javafx.fxml;
     opens com.restaurantmanagementsystem.pos.model to javafx.base, javafx.fxml;
+    opens com.restaurantmanagementsystem.pos.view to javafx.fxml;
+
 
     exports com.restaurantmanagementsystem.pos;
     exports com.restaurantmanagementsystem.pos.controller;
