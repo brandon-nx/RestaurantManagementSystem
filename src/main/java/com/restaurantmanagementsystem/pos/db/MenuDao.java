@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface MenuDao {
     List<MenuItem> getMenuItemsFromDatabase();
+    List<MenuItem> getMenuItemsFromDatabaseByCategory(String category);
 }

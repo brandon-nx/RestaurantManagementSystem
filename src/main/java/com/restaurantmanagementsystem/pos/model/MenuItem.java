@@ -37,5 +37,24 @@ public class MenuItem {
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+
+    @Override
+    public String toString() {
+        return "MenuItem{" +
+                "name='" + name + '\'' +
+                ", price=" + price +
+                ", imagePath='" + imagePath + '\'' +
+                ", category='" + category + '\'' +
+                '}';
+    }
 }
 

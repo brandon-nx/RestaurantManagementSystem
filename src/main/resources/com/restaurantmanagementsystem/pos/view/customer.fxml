@@ -7,21 +7,19 @@
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.CustomerController">
-    <BorderPane prefHeight="600.0" prefWidth="1000.0">
+    <BorderPane prefHeight="600.0" prefWidth="1100.0">
         <left>
             <VBox alignment="TOP_CENTER" prefHeight="574.0" prefWidth="109.0" spacing="10" style="-fx-background-color: #000000; -fx-padding: 10;" BorderPane.alignment="CENTER">
                 <ImageView fitHeight="100" fitWidth="100" pickOnBounds="true" preserveRatio="true">
-                    <image>
-                        <Image url="@/logo.png" />
-                    </image>
+                    <Image url="@/logo.png"/>
                 </ImageView>
                 <Text fill="WHITE" style="-fx-font-size: 20;-fx-background-color: transparent; -fx-text-fill: white;" text="Big Bite Restaurant" />
                 <Text fx:id="welcomeText" fill="WHITE" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Welcome, Customer" />
-                <Button fx:id="appetizersButton" text="Appetizers" minWidth="150" onAction="#handleCategoryButtonAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
-                <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Entrées" />
-                <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Sides" />
-                <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Desserts" />
-                <Button minWidth="150" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Beverages" />
+                <Button fx:id="appetizersButton" text="Appetizers" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
+                <Button fx:id="entreesButton" text="Entrées" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
+                <Button fx:id="sidesButton" text="Sides" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
+                <Button fx:id="dessertsButton" text="Desserts" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
+                <Button fx:id="beveragesButton" text="Beverages" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
                 <Button fx:id="signOutButton" text="Sign Out" minWidth="150" onAction="#handleSignOutAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
             </VBox>
         </left>

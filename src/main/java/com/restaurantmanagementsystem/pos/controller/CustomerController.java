@@ -34,6 +34,10 @@ public class CustomerController {
     public Button confirmOrderButton;
     public Button receiptButton;
     public Button appetizersButton;
+    public Button entreesButton;
+    public Button sidesButton;
+    public Button dessertsButton;
+    public Button beveragesButton;
     @FXML
     private Text welcomeText;
     @FXML
@@ -64,13 +68,101 @@ public class CustomerController {
 
         orderDetailsTable.setItems(orderItems);
         handleRemoveItemAction();
-        loadMenuItems();
+        loadCategory("Appetizers");
     }
 
     public void setUsername(String username) {
         welcomeText.setText("Welcome, " + username);
     }
 
+    // Sidebar menu with categories
+    @FXML
+    private void handleCategoryAction(ActionEvent event) {
+        Button clickedButton = (Button) event.getSource();
+        String category = getButtonCategory(clickedButton);
+
+        loadCategory(category);
+    }
+
+    private String getButtonCategory(Button button) {
+        String buttonId = button.getId();
+        return switch (buttonId) {
+            case "appetizersButton" -> "Appetizers";
+            case "entreesButton" -> "Entrées";
+            case "sidesButton" -> "Sides";
+            case "dessertsButton" -> "Desserts";
+            case "beveragesButton" -> "Beverages";
+            default -> ""; // Default case to handle any unexpected button ids
+        };
+    }
+
+    private void loadCategory(String category) {
+        List<MenuItem> filteredItems = menuDao.getMenuItemsFromDatabaseByCategory(category);
+        displayMenuItems(filteredItems);
+    }
+
+    // Display Menu Items
+    private void displayMenuItems(List<MenuItem> menuItems) {
+        centerVBox.getChildren().clear();
+        HBox currentRow = new HBox(20);
+        centerVBox.getChildren().add(currentRow);
+
+        for (int i = 0; i < menuItems.size(); i++) {
+            if (i > 0 && i % 4 == 0) {
+                currentRow = new HBox(20);
+                centerVBox.getChildren().add(currentRow);
+            }
+
+            // Create a VBox for the current menu item.
+            VBox itemVBox = createMenuItemVBox(menuItems.get(i));
+            currentRow.getChildren().add(itemVBox);
+        }
+    }
+
+
+    private VBox createMenuItemVBox(MenuItem menuItem) {
+        VBox itemVBox = new VBox(10);
+        itemVBox.setAlignment(Pos.CENTER);
+        ImageView imageView = createImageView(menuItem.getImagePath());
+        Text itemName = new Text(menuItem.getName() + " RM" + menuItem.getPrice());
+        Button addButton = new Button("Add");
+        addButton.setOnAction(this::handleAddItemAction);
+        addButton.setUserData(new OrderItem(menuItem.getName(), 1, menuItem.getPrice()));
+
+        itemVBox.getChildren().addAll(imageView, itemName, addButton);
+        return itemVBox;
+    }
+
+    private ImageView createImageView(String imagePath) {
+        ImageView imageView = null;
+        try {
+            Image image;
+            // Convert to a URL if it's not already a valid one
+            if (!imagePath.startsWith("http") && !imagePath.startsWith("file:")) {
+                URL imageUrl = getClass().getResource(imagePath);
+                if (imageUrl != null) {
+                    image = new Image(imageUrl.toExternalForm());
+                } else {
+                    throw new IllegalArgumentException("Image not found: " + imagePath);
+                }
+            } else {
+                image = new Image(imagePath);
+            }
+            imageView = new ImageView(image);
+            imageView.setFitHeight(100);
+            imageView.setFitWidth(150);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+            imageView = new ImageView(new Image("logo.png"));
+            imageView.setFitHeight(100);
+            imageView.setFitWidth(150);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+        }
+        return imageView;
+    }
 
     // Sign Out Button
     @FXML
@@ -122,84 +214,6 @@ public class CustomerController {
         }
         orderDetailsTable.refresh();
         calculateTotal();
-    }
-
-    private void calculateTotal() {
-        double total = orderItems.stream()
-                .mapToDouble(item -> item.getQuantity() * item.getPrice())
-                .sum();
-        totalText.setText(String.format("Total: RM%.2f", total));
-    }
-
-
-    // Load Menu Display
-    private void loadMenuItems() {
-        List<MenuItem> menuItems = menuDao.getMenuItemsFromDatabase();
-        HBox currentRow = createRow();
-        centerVBox.getChildren().clear();
-
-        int count = 0;
-        for (MenuItem menuItem : menuItems) {
-            if (count % 4 == 0 && count > 0) { // Every 4 items, start a new row
-                currentRow = createRow();
-            }
-
-            VBox itemVBox = createMenuItemVBox(menuItem);
-            currentRow.getChildren().add(itemVBox);
-            count++;
-        }
-    }
-
-    private VBox createMenuItemVBox(MenuItem menuItem) {
-        VBox itemVBox = new VBox(10);
-        itemVBox.setAlignment(Pos.CENTER);
-        ImageView imageView = createImageView(menuItem.getImagePath());
-        Text itemName = new Text(menuItem.getName() + " RM" + menuItem.getPrice());
-        Button addButton = new Button("Add");
-        addButton.setOnAction(this::handleAddItemAction);
-        addButton.setUserData(new OrderItem(menuItem.getName(), 1, menuItem.getPrice()));
-
-        itemVBox.getChildren().addAll(imageView, itemName, addButton);
-        return itemVBox;
-    }
-
-    private HBox createRow() {
-        HBox newRow = new HBox(20);
-        newRow.setAlignment(Pos.TOP_LEFT);
-        centerVBox.getChildren().add(newRow);
-        return newRow;
-    }
-
-
-    private ImageView createImageView(String imagePath) {
-        ImageView imageView = null;
-        try {
-            Image image;
-            // Convert to a URL if it's not already a valid one
-            if (!imagePath.startsWith("http") && !imagePath.startsWith("file:")) {
-                URL imageUrl = getClass().getResource(imagePath);
-                if (imageUrl != null) {
-                    image = new Image(imageUrl.toExternalForm());
-                } else {
-                    throw new IllegalArgumentException("Image not found: " + imagePath);
-                }
-            } else {
-                image = new Image(imagePath);
-            }
-            imageView = new ImageView(image);
-            imageView.setFitHeight(100);
-            imageView.setFitWidth(150);
-            imageView.setPreserveRatio(true);
-            imageView.setSmooth(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-            imageView = new ImageView(new Image("logo.png"));
-            imageView.setFitHeight(100);
-            imageView.setFitWidth(150);
-            imageView.setPreserveRatio(true);
-            imageView.setSmooth(true);
-        }
-        return imageView;
     }
 
     // Remove Button
@@ -354,15 +368,11 @@ public class CustomerController {
         }
     }
 
-    // Side Bar Menu Category Buttons
-    public void handleCategoryAction(ActionEvent event) {
-        Button btn = (Button)event.getSource();
-        String category = btn.getText();
-        List<MenuItem> itemsByCategory = menuDao.getMenuItemsFromDatabase();
-    }
-
-    @FXML
-    private void handleCategoryButtonAction(ActionEvent event) {
-        handleCategoryAction(event);
+    // Calculate Total
+    private void calculateTotal() {
+        double total = orderItems.stream()
+                .mapToDouble(item -> item.getQuantity() * item.getPrice())
+                .sum();
+        totalText.setText(String.format("Total: RM%.2f", total));
     }
 }
