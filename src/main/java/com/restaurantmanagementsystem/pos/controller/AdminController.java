@@ -26,8 +26,8 @@ import java.util.Optional;
 public class AdminController {
     @FXML
     public TableColumn productIdColumn, productNameColumn, categoryColumn, priceColumn, statusColumn, stockColumn, imageColumn;
-    public TextField productIdField, productNameField, stockField, priceField;
-    public ComboBox typeComboBox, statusComboBox;
+    public TextField productNameField, stockField, priceField;
+    public ComboBox<String> typeComboBox, statusComboBox;
     @FXML
     private Button signOutButton, addButton, updateButton, clearButton, deleteButton, importButton;
     @FXML
@@ -41,6 +41,17 @@ public class AdminController {
 
     public void initialize() {
         welcomeText.setText("Welcome, Admin111");
+
+        // Set up the ComboBox for types
+        typeComboBox.setItems(FXCollections.observableArrayList(
+                "Appetizers", "Entrées", "Sides", "Desserts", "Beverages"
+        ));
+
+        // Set up the ComboBox for status
+        statusComboBox.setItems(FXCollections.observableArrayList(
+                "Available", "Unavailable"
+        ));
+
         handleProductTableView();
     }
 
@@ -81,7 +92,7 @@ public class AdminController {
         column.setCellFactory(param -> new TableCell<MenuItem, String>() {
             private final ImageView imageView = new ImageView();
             {
-                imageView.setFitHeight(50); // You can adjust the size as needed
+                imageView.setFitHeight(50);
                 imageView.setFitWidth(50);
                 imageView.setPreserveRatio(true);
             }
@@ -145,19 +156,43 @@ public class AdminController {
     // Add Product Button
     @FXML
     private void handleAddAction(ActionEvent event) {
-        // Validation and parsing of the input fields should be added here
+        // Check if any field is empty
+        if (productNameField.getText().trim().isEmpty() ||
+            stockField.getText().trim().isEmpty() ||
+            priceField.getText().trim().isEmpty() ||
+            typeComboBox.getSelectionModel().isEmpty() ||
+            statusComboBox.getSelectionModel().isEmpty() ||
+            currentImagePath == null || currentImagePath.isEmpty()) {
 
-        String productId = generateProductId(); // Assuming you have implemented this method
-        String name = productNameField.getText();
+            showAlert("Input Error", "Please fill in all the fields and import an image.");
+            return;
+        }
+
+        // Proceed with processing since all fields are filled
+        String productId = generateProductId();
+        String name = productNameField.getText().trim();
         String category = typeComboBox.getSelectionModel().getSelectedItem().toString();
         String status = statusComboBox.getSelectionModel().getSelectedItem().toString();
-        int stock = Integer.parseInt(stockField.getText());
-        double price = Double.parseDouble(priceField.getText());
-        price = Math.round(price * 100.0) / 100.0;
 
-        // Use the currentImagePath for the new MenuItem
+        // Parsing and validation of number fields
+        int stock;
+        try {
+            stock = Integer.parseInt(stockField.getText().trim());
+        } catch (NumberFormatException e) {
+            showAlert("Input Error", "Please enter a valid number for stock.");
+            return;
+        }
+
+        double price;
+        try {
+            price = Double.parseDouble(priceField.getText().trim());
+            price = Math.round(price * 100.0) / 100.0; // Ensures the price is with two decimal places
+        } catch (NumberFormatException e) {
+            showAlert("Input Error", "Please enter a valid price.");
+            return; // Exit early if input is not valid
+        }
+
         MenuItem newItem = new MenuItem(productId, name, price, currentImagePath, category, stock, status);
-
         boolean success = menuDao.addMenuItems(newItem);
 
         if (success) {
@@ -184,7 +219,6 @@ public class AdminController {
 
     private void clearInputFields() {
         // Clear all input fields
-        productIdField.clear();
         productNameField.clear();
         priceField.clear();
         stockField.clear();

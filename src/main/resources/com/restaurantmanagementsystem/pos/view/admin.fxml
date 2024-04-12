@@ -47,17 +47,16 @@
                 <VBox spacing="10">
                     <VBox alignment="TOP_CENTER" spacing="10">
                         <HBox alignment="CENTER_LEFT" spacing="10">
-                            <Label minWidth="80" text="Product ID:" />
-                            <TextField fx:id="productIdField" prefWidth="200" />
+                            <Label text="ADD NEW PRODUCT" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
                             <padding>
-                                <Insets left="5" top="25" />
+                                <Insets left="5"/>
                             </padding>
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="10">
                             <Label minWidth="80" text="Name:" />
                             <TextField fx:id="productNameField" prefWidth="200" />
                             <padding>
-                                <Insets left="5" />
+                                <Insets left="5"/>
                             </padding>
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="10">
