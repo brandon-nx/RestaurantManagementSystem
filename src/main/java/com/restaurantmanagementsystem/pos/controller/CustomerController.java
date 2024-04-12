@@ -97,7 +97,7 @@ public class CustomerController {
     }
 
     private void loadCategory(String category) {
-        List<MenuItem> filteredItems = menuDao.getMenuItemsFromDatabaseByCategory(category);
+        List<MenuItem> filteredItems = menuDao.getMenuItemsByCategory(category);
         displayMenuItems(filteredItems);
     }
 

@@ -1,35 +1,115 @@
 package com.restaurantmanagementsystem.pos.controller;
 
+import com.restaurantmanagementsystem.pos.db.MenuDao;
+import com.restaurantmanagementsystem.pos.db.MenuDaoImpl;
+import com.restaurantmanagementsystem.pos.model.MenuItem;
+import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 public class AdminController {
-    public ComboBox statusComboBox;
-    public TextField priceField;
-    public TextField stockField;
-    public ComboBox typeComboBox;
-    public TextField productNameField;
-    public TextField productIdField;
+    @FXML
+    public TableColumn productIdColumn, productNameColumn, categoryColumn, priceColumn, statusColumn, stockColumn, imageColumn;
+    public TextField productIdField, productNameField, stockField, priceField;
+    public ComboBox typeComboBox, statusComboBox;
+    @FXML
+    private Button signOutButton, addButton, updateButton, clearButton, deleteButton, importButton;
+    @FXML
+    private ImageView productImageView;
     @FXML
     private Text welcomeText;
     @FXML
-    private Button signOutButton;
+    private TableView<MenuItem> productTable;
+    private MenuDao menuDao = new MenuDaoImpl();
+    private String currentImagePath;
 
     public void initialize() {
-        // Initialization logic here
-        welcomeText.setText("Welcome, Admin111"); // Replace with dynamic username
+        welcomeText.setText("Welcome, Admin111");
+        handleProductTableView();
     }
 
     public void setUsername(String username) {
         welcomeText.setText("Welcome, " + username);
+    }
+
+    // Load All Product Information
+    private void handleProductTableView() {
+        setupColumn(productIdColumn, "productId");
+        setupColumn(productNameColumn, "name");
+        setupColumn(priceColumn, "price");
+        setupColumn(categoryColumn, "category");
+        setupColumn(stockColumn, "stock");
+        setupColumn(statusColumn, "status");
+        setupImageColumn(imageColumn, "imagePath");
+        loadProducts();
+    }
+
+    private <T> void setupColumn(TableColumn<MenuItem, T> column, String propertyName) {
+        column.setCellValueFactory(new PropertyValueFactory<>(propertyName));
+        column.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item instanceof Double) {
+                    setText(empty ? null : String.format("%.2f", item));
+                } else {
+                    setText(empty ? null : String.valueOf(item));
+                }
+                setAlignment(Pos.CENTER);
+            }
+        });
+    }
+
+    private void setupImageColumn(TableColumn<MenuItem, String> column, String propertyName) {
+        column.setCellValueFactory(new PropertyValueFactory<>(propertyName));
+        column.setCellFactory(param -> new TableCell<MenuItem, String>() {
+            private final ImageView imageView = new ImageView();
+            {
+                imageView.setFitHeight(50); // You can adjust the size as needed
+                imageView.setFitWidth(50);
+                imageView.setPreserveRatio(true);
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isEmpty()) {
+                    setGraphic(null);
+                } else {
+                    Image image = new Image(item, true);
+                    imageView.setImage(image);
+                    setGraphic(imageView);
+                }
+                setAlignment(Pos.CENTER);
+            }
+        });
+    }
+
+    private void loadProducts() {
+        // Clear existing items
+        productTable.getItems().clear();
+
+        // Fetch new list of products from the database
+        List<MenuItem> products = menuDao.getMenuItems();
+
+        // Update the table view with the new items
+        productTable.setItems(FXCollections.observableArrayList(products));
     }
 
 
@@ -59,6 +139,88 @@ public class AdminController {
                 e.printStackTrace();
                 // Here, set a message or log the error as appropriate.
             }
+        }
+    }
+
+    // Add Product Button
+    @FXML
+    private void handleAddAction(ActionEvent event) {
+        // Validation and parsing of the input fields should be added here
+
+        String productId = generateProductId(); // Assuming you have implemented this method
+        String name = productNameField.getText();
+        String category = typeComboBox.getSelectionModel().getSelectedItem().toString();
+        String status = statusComboBox.getSelectionModel().getSelectedItem().toString();
+        int stock = Integer.parseInt(stockField.getText());
+        double price = Double.parseDouble(priceField.getText());
+        price = Math.round(price * 100.0) / 100.0;
+
+        // Use the currentImagePath for the new MenuItem
+        MenuItem newItem = new MenuItem(productId, name, price, currentImagePath, category, stock, status);
+
+        boolean success = menuDao.addMenuItems(newItem);
+
+        if (success) {
+            clearInputFields();
+            loadProducts();
+        } else {
+            showAlert("Add Item Failed", "Could not add the new menu item to the database.");
+        }
+    }
+
+    private String generateProductId() {
+        int lastIdNumber = menuDao.getLastIdNumber(); // This method should return the numeric part of the last ID
+        int nextIdNumber = lastIdNumber + 1;
+        return String.format("P-%03d", nextIdNumber);
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null); // No header
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void clearInputFields() {
+        // Clear all input fields
+        productIdField.clear();
+        productNameField.clear();
+        priceField.clear();
+        stockField.clear();
+        typeComboBox.getSelectionModel().clearSelection();
+        statusComboBox.getSelectionModel().clearSelection();
+        productImageView.setImage(null);
+    }
+
+    @FXML
+    private void handleUpdateAction(ActionEvent event) {
+        // Implement your logic for updating a product
+    }
+
+    @FXML
+    private void handleClearAction(ActionEvent event) {
+        // Implement your logic for clearing form fields
+    }
+
+    @FXML
+    private void handleDeleteAction(ActionEvent event) {
+        // Implement your logic for deleting a product
+    }
+
+    @FXML
+    private void handleImportAction(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        File file = fileChooser.showOpenDialog(null);
+
+        if (file != null) {
+            Image image = new Image(file.toURI().toString());
+            productImageView.setImage(image);
+            currentImagePath = file.toURI().toString(); // Save the URI as a string
         }
     }
 }

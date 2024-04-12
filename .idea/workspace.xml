@@ -5,16 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d2595f03-9e07-430b-8b1d-85c3cef8c02b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/cheesecake.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/cola.jpg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/frenchfries.jpeg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/salad.jpg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/customers.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/gui.docx" beforeDir="false" afterPath="$PROJECT_DIR$/gui.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/MainApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/MainApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/AdminController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/CustomerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/CustomerController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDao.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDaoImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDaoImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/MenuItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/MenuItem.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/customer.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/customer.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/admin.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/admin.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,7 +56,7 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Hp/Desktop/OneDrive - University of Southampton/Projects/Others/RestaurantManagementSystem/src/main/resources&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Hp/Desktop/OneDrive - University of Southampton/Projects/Others/RestaurantManagementSystem&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -101,6 +101,11 @@
       <workItem from="1712544397984" duration="16651000" />
       <workItem from="1712584911835" duration="6493000" />
       <workItem from="1712634782752" duration="4304000" />
+      <workItem from="1712649714327" duration="190000" />
+      <workItem from="1712717708731" duration="13463000" />
+      <workItem from="1712760409311" duration="1320000" />
+      <workItem from="1712834027816" duration="17000" />
+      <workItem from="1712895382053" duration="4226000" />
     </task>
     <servers />
   </component>
