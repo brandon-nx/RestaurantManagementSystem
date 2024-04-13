@@ -7,9 +7,7 @@
     <list default="true" id="d2595f03-9e07-430b-8b1d-85c3cef8c02b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/AdminController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDao.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDaoImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDaoImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/admin.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/admin.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/receipt.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/receipt.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,12 +49,13 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/Hp/Desktop/OneDrive - University of Southampton/Projects/Others/RestaurantManagementSystem&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Hp/Desktop/OneDrive - University of Southampton/UOSM/Year 1/Y1 S2/PRO II/3. LAB/LAB9AND10&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -102,6 +101,9 @@
       <workItem from="1712834027816" duration="17000" />
       <workItem from="1712895382053" duration="6153000" />
       <workItem from="1712908385521" duration="6467000" />
+      <workItem from="1712982282034" duration="42000" />
+      <workItem from="1712982337576" duration="93000" />
+      <workItem from="1712987414179" duration="1417000" />
     </task>
     <servers />
   </component>
@@ -110,5 +112,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
   </component>
 </project>

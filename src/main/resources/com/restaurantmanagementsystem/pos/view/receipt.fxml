@@ -20,12 +20,12 @@
                 <Label fx:id="subtotalPrice" alignment="TOP_RIGHT" />
             </HBox>
             <HBox>
-                <Label text="SERVICE CHG:" />
+                <Label text="SERVICE CHG (10%):" />
                 <Pane HBox.hgrow="ALWAYS" />
                 <Label fx:id="serviceChargePrice" alignment="TOP_RIGHT" />
             </HBox>
             <HBox>
-                <Label text="GOVT TAX:" />
+                <Label text="GOVT TAX (6%):" />
                 <Pane HBox.hgrow="ALWAYS" />
                 <Label fx:id="taxPrice" alignment="TOP_RIGHT" />
             </HBox>

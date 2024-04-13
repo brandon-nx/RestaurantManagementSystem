@@ -186,7 +186,7 @@ public class AdminController {
 
     // Add Product Button
     @FXML
-    private void handleAddAction(ActionEvent event) {
+    private void handleAddAction() {
         // Check if any field is empty
         if (productNameField.getText().trim().isEmpty() ||
             stockField.getText().trim().isEmpty() ||
@@ -195,7 +195,7 @@ public class AdminController {
             statusComboBox.getSelectionModel().isEmpty() ||
             currentImagePath == null || currentImagePath.isEmpty()) {
 
-            showAlert("Input Error", "Please fill in all the fields and import an image.");
+            showErrorAlert("Input Error", "Please fill in all the fields and import an image.");
             return;
         }
 
@@ -210,7 +210,7 @@ public class AdminController {
         try {
             stock = Integer.parseInt(stockField.getText().trim());
         } catch (NumberFormatException e) {
-            showAlert("Input Error", "Please enter a valid number for stock.");
+            showErrorAlert("Input Error", "Please enter a valid number for stock.");
             return;
         }
 
@@ -219,8 +219,8 @@ public class AdminController {
             price = Double.parseDouble(priceField.getText().trim());
             price = Math.round(price * 100.0) / 100.0; // Ensures the price is with two decimal places
         } catch (NumberFormatException e) {
-            showAlert("Input Error", "Please enter a valid price.");
-            return; // Exit early if input is not valid
+            showErrorAlert("Input Error", "Please enter a valid price.");
+            return;
         }
 
         MenuItem newItem = new MenuItem(productId, name, price, currentImagePath, category, stock, status);
@@ -230,7 +230,7 @@ public class AdminController {
             handleClearAction();
             loadProducts();
         } else {
-            showAlert("Add Item Failed", "Could not add the new menu item to the database.");
+            showErrorAlert("Add Item Failed", "Could not add the new menu item to the database.");
         }
     }
 
@@ -255,10 +255,10 @@ public class AdminController {
             if (success) {
                 // If successful, remove the item from the TableView
                 productTable.getItems().remove(itemToDelete);
-                showAlert("Item Deleted", "The item was successfully deleted.");
+                showInformationAlert("Item Deleted", "The item was successfully deleted.");
             } else {
                 // If unsuccessful, show an error message
-                showAlert("Deletion Failed", "Could not delete the item from the database.");
+                showErrorAlert("Deletion Failed", "Could not delete the item from the database.");
             }
         }
     }
@@ -270,19 +270,11 @@ public class AdminController {
 
         // Check if a product is actually selected
         if (selectedItem == null) {
-            showAlert("Update Error", "No product selected for update.");
+            showErrorAlert("Update Error", "No product selected for update.");
             return;
         }
 
-//        System.out.println("Debug before update validation:");
-//        System.out.println("Name: " + productNameField.getText());
-//        System.out.println("Stock: " + stockField.getText());
-//        System.out.println("Price: " + priceField.getText());
-//        System.out.println("Type: " + (typeComboBox.getValue() != null ? typeComboBox.getValue() : "null"));
-//        System.out.println("Status: " + (statusComboBox.getValue() != null ? statusComboBox.getValue() : "null"));
-//        System.out.println("ImagePath: " + (currentImagePath != null ? currentImagePath : "null"));
-//
-//        // Validation: Check if any field is empty or if no image has been imported
+        // Check if all fields are filled
 //        if (productNameField.getText().trim().isEmpty() ||
 //                stockField.getText().trim().isEmpty() ||
 //                priceField.getText().trim().isEmpty() ||
@@ -290,7 +282,7 @@ public class AdminController {
 //                statusComboBox.getSelectionModel().isEmpty() ||
 //                currentImagePath == null || currentImagePath.isEmpty()) {
 //
-//            showAlert("Input Error", "Please complete all fields before updating.");
+//            showErrorAlert("Input Error", "Please fill in all the fields and import an image.");
 //            return;
 //        }
 
@@ -302,13 +294,12 @@ public class AdminController {
                 statusComboBox.getValue().equals(selectedItem.getStatus()) &&
                 currentImagePath.equals(selectedItem.getImagePath())) {
 
-            showAlert("No Change", "No information has changed.");
+            showInformationAlert("No Change", "No information has changed.");
             return;
         }
 
         // Confirm the update action with the admin
-        Alert confirmUpdateAlert = new Alert(Alert.AlertType.CONFIRMATION, "Confirm Update",
-                ButtonType.YES, ButtonType.CANCEL);
+        Alert confirmUpdateAlert = new Alert(Alert.AlertType.CONFIRMATION, "Confirm Update", ButtonType.YES, ButtonType.CANCEL);
         confirmUpdateAlert.setHeaderText("Update Product");
         confirmUpdateAlert.setContentText("Are you sure you want to update the selected product?");
 
@@ -335,14 +326,14 @@ public class AdminController {
                 // Check if the update was successful
                 if (updateSuccess) {
                     productTable.refresh();
-                    showAlert("Update Successful", "The product details have been updated.");
+                    showInformationAlert("Update Successful", "The product details have been updated.");
                     handleClearAction();
                 } else {
-                    showAlert("Update Failed", "Failed to update the product details.");
+                    showErrorAlert("Update Failed", "Failed to update the product details.");
                 }
 
             } catch (NumberFormatException e) {
-                showAlert("Input Error", "Please enter valid numbers for stock and price.");
+                showErrorAlert("Input Error", "Please enter valid numbers for stock and price.");
             }
         }
     }
@@ -355,10 +346,12 @@ public class AdminController {
         typeComboBox.getSelectionModel().clearSelection();
         statusComboBox.getSelectionModel().clearSelection();
         productImageView.setImage(null);
+        productTable.getSelectionModel().clearSelection();
+        currentImagePath = null;
     }
 
     @FXML
-    private void handleImportAction(ActionEvent event) {
+    private void handleImportAction() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
@@ -369,16 +362,8 @@ public class AdminController {
         if (file != null) {
             Image image = new Image(file.toURI().toString());
             productImageView.setImage(image);
-            currentImagePath = file.toURI().toString(); // Save the URI as a string
+            currentImagePath = file.toURI().toString();
         }
-    }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null); // No header
-        alert.setContentText(message);
-        alert.showAndWait();
     }
 
     private void fillInputFieldsWithSelectedItemDetails(MenuItem item) {
@@ -391,5 +376,21 @@ public class AdminController {
         Image image = new Image(item.getImagePath());
         productImageView.setImage(image);
         currentImagePath = item.getImagePath();
+    }
+
+    private void showErrorAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showInformationAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }
