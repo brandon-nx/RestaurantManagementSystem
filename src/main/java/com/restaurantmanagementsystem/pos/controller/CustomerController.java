@@ -107,17 +107,27 @@ public class CustomerController {
         HBox currentRow = new HBox(20);
         centerVBox.getChildren().add(currentRow);
 
-        for (int i = 0; i < menuItems.size(); i++) {
-            if (i > 0 && i % 4 == 0) {
+        int counter = 0;
+        for (MenuItem menuItem : menuItems) {
+            if (counter == 4) {
                 currentRow = new HBox(20);
                 centerVBox.getChildren().add(currentRow);
+                counter = 0;
             }
 
-            // Create a VBox for the current menu item.
-            VBox itemVBox = createMenuItemVBox(menuItems.get(i));
+            VBox itemVBox = createMenuItemVBox(menuItem);
             currentRow.getChildren().add(itemVBox);
+
+            Button addButton = (Button) itemVBox.lookup("#addButton" + menuItem.getProductId());
+            if (menuItem.getStock() <= 0 && addButton != null) {
+                addButton.setDisable(true);
+                addButton.setTooltip(new Tooltip("Out of stock"));
+            }
+
+            counter++;
         }
     }
+
 
 
     private VBox createMenuItemVBox(MenuItem menuItem) {
@@ -126,8 +136,14 @@ public class CustomerController {
         ImageView imageView = createImageView(menuItem.getImagePath());
         Text itemName = new Text(menuItem.getName() + " RM" + menuItem.getPrice());
         Button addButton = new Button("Add");
+        addButton.setId("addButton");
         addButton.setOnAction(this::handleAddItemAction);
         addButton.setUserData(new OrderItem(menuItem.getName(), 1, menuItem.getPrice()));
+
+        if (menuItem.getStock() <= 0) {
+            addButton.setDisable(true);
+            addButton.setTooltip(new Tooltip("Out of stock"));
+        }
 
         itemVBox.getChildren().addAll(imageView, itemName, addButton);
         return itemVBox;
@@ -137,7 +153,6 @@ public class CustomerController {
         ImageView imageView = null;
         try {
             Image image;
-            // Convert to a URL if it's not already a valid one
             if (!imagePath.startsWith("http") && !imagePath.startsWith("file:")) {
                 URL imageUrl = getClass().getResource(imagePath);
                 if (imageUrl != null) {
@@ -198,22 +213,52 @@ public class CustomerController {
     @FXML
     private void handleAddItemAction(ActionEvent event) {
         Button addButton = (Button) event.getSource();
-        OrderItem item = (OrderItem) addButton.getUserData();
+        OrderItem orderItem = (OrderItem) addButton.getUserData();
+        MenuItem menuItem = menuDao.getMenuItemsByName(orderItem.getProductName()); // Note the method name changed to getMenuItemByName
 
-        // Find existing item in the order
-        Optional<OrderItem> existingItem = orderItems.stream()
-                .filter(orderItem -> orderItem.getProductName().equals(item.getProductName()))
+        if (menuItem != null) {
+            if (menuItem.getStock() > 0) {
+                // Here, you should check not just the stock is greater than 0,
+                // but also that it can cover the quantity being added to the order
+                addOrUpdateOrderItem(orderItem, menuItem);
+            } else {
+                // Show error message if stock is not sufficient
+                showErrorAlert("Out of Stock", menuItem.getName() + " is out of stock!");
+            }
+        } else {
+            // Show error message if item is not found
+            showErrorAlert("Item Not Found", "Could not find " + orderItem.getProductName() + " in the menu.");
+        }
+    }
+
+    // Helper method to add or update an OrderItem in the order
+    private void addOrUpdateOrderItem(OrderItem itemToAdd, MenuItem menuItem) {
+        Optional<OrderItem> existingOrderItem = orderItems.stream()
+                .filter(orderItem -> orderItem.getProductName().equals(itemToAdd.getProductName()))
                 .findFirst();
 
-        if (existingItem.isPresent()) {
-            // If the item already exists, increase the quantity
-            existingItem.get().setQuantity(existingItem.get().getQuantity() + 1);
+        if (existingOrderItem.isPresent()) {
+            // If the item already exists in the order, increase the quantity
+            OrderItem existingItem = existingOrderItem.get();
+            if (existingItem.getQuantity() + 1 <= menuItem.getStock()) {
+                existingItem.setQuantity(existingItem.getQuantity() + 1);
+            } else {
+                // Show error message if the stock is not enough for adding one more item
+                showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
+                return;
+            }
         } else {
-            // If not, add the new item with quantity 1
-            orderItems.add(new OrderItem(item.getProductName(), 1, item.getPrice()));
+            // If the item is new to the order and there is stock, add the new item with quantity 1
+            if (menuItem.getStock() > 0) {
+                orderItems.add(new OrderItem(itemToAdd.getProductName(), 1, itemToAdd.getPrice()));
+            } else {
+                showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
+                return;
+            }
         }
-        orderDetailsTable.refresh();
-        calculateTotal();
+
+        orderDetailsTable.refresh(); // Refresh the TableView to show updated quantities
+        calculateTotal(); // Recalculate the total price
     }
 
     // Remove Button
@@ -275,9 +320,7 @@ public class CustomerController {
     @FXML
     private void handleConfirmOrderAction() {
         if (orderItems.isEmpty()) {
-            Alert emptyOrderAlert = new Alert(Alert.AlertType.WARNING, "No items in the order. Please add food to your order before confirming.");
-            emptyOrderAlert.setHeaderText("Empty Order");
-            emptyOrderAlert.showAndWait();
+            showErrorAlert("Empty Order", "No items in the order.");
             return;
         }
 
@@ -287,6 +330,31 @@ public class CustomerController {
 
         Optional<ButtonType> result = confirmAlert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
+            boolean isStockSufficient = true;
+
+            // Check for stock availability before confirming the order
+            for (OrderItem orderItem : orderItems) {
+                MenuItem menuItem = menuDao.getMenuItemsByName(orderItem.getProductName());
+                if (menuItem != null && menuItem.getStock() < orderItem.getQuantity()) {
+                    showErrorAlert("Stock Error", "Not enough stock for " + orderItem.getProductName());
+                    isStockSufficient = false;
+                    break;
+                }
+            }
+
+            if (!isStockSufficient) {
+                return; // Stop the confirmation process if stock is insufficient
+            }
+
+            // Deduct the ordered quantity from the stock
+            for (OrderItem orderItem : orderItems) {
+                MenuItem menuItem = menuDao.getMenuItemsByName(orderItem.getProductName());
+                if (menuItem != null) {
+                    menuItem.setStock(menuItem.getStock() - orderItem.getQuantity());
+                    menuDao.updateMenuItem(menuItem); // Assume this method properly updates the stock in the database
+                }
+            }
+
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/receipt.fxml"));
                 Parent root = loader.load();
@@ -374,5 +442,21 @@ public class CustomerController {
                 .mapToDouble(item -> item.getQuantity() * item.getPrice())
                 .sum();
         totalText.setText(String.format("Total: RM%.2f", total));
+    }
+
+    private void showErrorAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void showInformationAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

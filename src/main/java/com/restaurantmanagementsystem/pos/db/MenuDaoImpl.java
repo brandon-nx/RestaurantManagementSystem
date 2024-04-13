@@ -60,6 +60,32 @@ public class MenuDaoImpl implements MenuDao {
         return menuItems;
     }
 
+    public MenuItem getMenuItemsByName(String name) {
+        String sql = "SELECT * FROM menu_items WHERE name = ?";
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, name);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    // Read the item properties from the ResultSet and return a new MenuItem
+                    String productId = rs.getString("ProductID");
+                    String itemName = rs.getString("name");
+                    double price = rs.getDouble("price");
+                    String imagePath = rs.getString("image_path");
+                    String category = rs.getString("category");
+                    int stock = rs.getInt("stock");
+                    String status = rs.getString("status");
+
+                    return new MenuItem(productId, itemName, price, imagePath, category, stock, status);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // Proper exception handling goes here
+        }
+        return null; // If not found or error occurred
+    }
+
     @Override
     public boolean addMenuItems(MenuItem menuItem) {
         String sql = "INSERT INTO menu_items (ProductID, name, price, image_path, category, stock, status) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -83,23 +109,6 @@ public class MenuDaoImpl implements MenuDao {
             // Proper exception handling goes here
             return false;
         }
-    }
-
-    public int getLastIdNumber() {
-        String sql = "SELECT MAX(CAST(SUBSTRING(ProductID FROM 3) AS INTEGER)) AS lastId FROM menu_items";
-        try (Connection conn = DatabaseConnector.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt("lastId");
-            } else {
-                return 1; // or 1 if you want to start from 'P-001' when there are no items
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            // Proper exception handling goes here
-        }
-        return 0; // Fallback in case of an error
     }
 
     public boolean deleteMenuItem(MenuItem item) {
@@ -138,5 +147,22 @@ public class MenuDaoImpl implements MenuDao {
             e.printStackTrace(); // Ideally, you would have better error handling
             return false;
         }
+    }
+
+    public int getLastIdNumber() {
+        String sql = "SELECT MAX(CAST(SUBSTRING(ProductID FROM 3) AS INTEGER)) AS lastId FROM menu_items";
+        try (Connection conn = DatabaseConnector.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                return rs.getInt("lastId");
+            } else {
+                return 1; // or 1 if you want to start from 'P-001' when there are no items
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // Proper exception handling goes here
+        }
+        return 0; // Fallback in case of an error
     }
 }
