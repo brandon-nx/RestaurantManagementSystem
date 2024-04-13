@@ -40,7 +40,7 @@ public class InventoryController {
 
         // Set up the ComboBox for status
         statusComboBox.setItems(FXCollections.observableArrayList(
-                "Available", "Unavailable"
+                "available", "unavailable"
         ));
 
         handleProductTableView();

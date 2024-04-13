@@ -40,7 +40,7 @@ public class AdminController {
 
     @FXML
     private void handleReportAction() {
-
+        switchToView("/com/restaurantmanagementsystem/pos/view/report.fxml");
     }
 
     @FXML
@@ -50,7 +50,7 @@ public class AdminController {
 
     @FXML
     private void handleMenuAction() {
-
+        switchToView("/com/restaurantmanagementsystem/pos/view/menu.fxml");
     }
 
     // Sign Out Button

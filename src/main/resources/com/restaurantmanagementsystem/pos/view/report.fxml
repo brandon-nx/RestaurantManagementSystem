@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.VBox?>
+
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.Label?>
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.ReportController" prefHeight="600.0" prefWidth="910.0">
+    <center>
+        <Label text="Hello"/>
+    </center>
+</BorderPane>

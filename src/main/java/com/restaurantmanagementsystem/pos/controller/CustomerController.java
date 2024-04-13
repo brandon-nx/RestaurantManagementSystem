@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class CustomerController {
     public Button clearOrderButton;
@@ -97,7 +98,12 @@ public class CustomerController {
     }
 
     private void loadCategory(String category) {
-        List<MenuItem> filteredItems = menuDao.getMenuItemsByCategory(category);
+        List<MenuItem> allItems = menuDao.getMenuItemsByCategory(category);
+        List<MenuItem> filteredItems = allItems.stream()
+                .filter(item -> {
+                    return !"unavailable".equals(item.getStatus());
+                })
+                .collect(Collectors.toList());
         displayMenuItems(filteredItems);
     }
 
