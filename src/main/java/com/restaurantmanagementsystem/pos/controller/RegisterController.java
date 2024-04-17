@@ -1,6 +1,8 @@
 package com.restaurantmanagementsystem.pos.controller;
 
 import com.restaurantmanagementsystem.pos.db.DatabaseConnector;
+import com.restaurantmanagementsystem.pos.db.RegisterDao;
+import com.restaurantmanagementsystem.pos.db.RegisterDaoImpl;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -21,22 +23,12 @@ import java.sql.SQLException;
 public class RegisterController {
 
     @FXML
-    private TextField usernameField;
-
+    private TextField usernameField, contactField, addressField;
     @FXML
-    private PasswordField passwordField;
-
-    @FXML
-    private PasswordField confirmPasswordField;
-
-    @FXML
-    private TextField contactField;
-
-    @FXML
-    private TextField addressField;
-
+    private PasswordField passwordField, confirmPasswordField;
     @FXML
     private Text registrationMessageLabel;
+    private RegisterDao registerDao = new RegisterDaoImpl();
 
     @FXML
     private void handleRegisterButtonAction() {
@@ -69,59 +61,13 @@ public class RegisterController {
     }
 
     private boolean registerCustomer(String username, String password, String contact, String address) {
-        String insertCustomerQuery = "INSERT INTO users (username, password, contact, address, role) VALUES (?, ?, ?, ?, ?)";
-
-        try (Connection conn = DatabaseConnector.getConnection()) {
-            // Check if the username already exists
-            if (usernameExists(conn, username)) {
-                registrationMessageLabel.setText("Username already exists.");
-                return false;
-            }
-
-            // Start transaction
-            conn.setAutoCommit(false);
-
-            try (PreparedStatement pstmt = conn.prepareStatement(insertCustomerQuery)) {
-                pstmt.setString(1, username);
-                pstmt.setString(2, password);
-                pstmt.setString(3, contact);
-                pstmt.setString(4, address);
-                pstmt.setString(5, "customer");
-
-                int affectedRows = pstmt.executeUpdate();
-                if (affectedRows == 0) {
-                    conn.rollback();
-                    return false;
-                }
-
-                conn.commit();
-                return true;
-            } catch (SQLException ex) {
-                conn.rollback();
-                throw ex;
-            }
-        } catch (SQLException ex) {
-            handleSqlException(ex);
+        // Register customer using the DAO
+        if (!registerDao.checkUsernameExists(username)) {
+            return registerDao.registerCustomer(username, password, contact, address);
+        } else {
+            registrationMessageLabel.setText("Username already exists.");
             return false;
         }
-    }
-
-    private boolean usernameExists(Connection conn, String username) throws SQLException {
-        String query = "SELECT 1 FROM users WHERE username = ?";
-        try (PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, username);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                return rs.next();
-            }
-        }
-    }
-
-    private void handleSqlException(SQLException ex) {
-        System.err.println("An error occurred during the database operation.");
-        System.err.println("SQLState: " + ex.getSQLState());
-        System.err.println("Error Code: " + ex.getErrorCode());
-        System.err.println("Message: " + ex.getMessage());
-        ex.printStackTrace();
     }
 
     @FXML
@@ -137,6 +83,14 @@ public class RegisterController {
             e.printStackTrace();
             registrationMessageLabel.setText("Failed to load the login view.");
         }
+    }
+
+    private void handleSqlException(SQLException ex) {
+        System.err.println("An error occurred during the database operation.");
+        System.err.println("SQLState: " + ex.getSQLState());
+        System.err.println("Error Code: " + ex.getErrorCode());
+        System.err.println("Message: " + ex.getMessage());
+        ex.printStackTrace();
     }
 
     private void showAlert(String title, String message) {

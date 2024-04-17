@@ -1,7 +1,8 @@
 package com.restaurantmanagementsystem.pos.controller;
 
-import com.restaurantmanagementsystem.pos.db.DatabaseConnector;
-import java.sql.*;
+import com.restaurantmanagementsystem.pos.db.LoginDao;
+import com.restaurantmanagementsystem.pos.db.LoginDaoImpl;
+import com.restaurantmanagementsystem.pos.model.UserAuthenticationResult;
 import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.PasswordField;
@@ -13,28 +14,30 @@ import javafx.scene.Scene;
 import javafx.fxml.FXMLLoader;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 public class LoginController {
 
     @FXML
     private TextField usernameField;
-
     @FXML
     private PasswordField passwordField;
-
     @FXML
     private Text loginMessageLabel;
-
     @FXML
     private Hyperlink createAccountLink;
+
+    private LoginDao loginDao = new LoginDaoImpl();
 
     @FXML
     private void handleLoginButtonAction() {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
 
-        if (authenticate(username, password)) {
+        UserAuthenticationResult result = loginDao.authenticate(username, password);
+        if (result.isAuthenticated()) {
             loginMessageLabel.setText("Login successful.");
+            loadDashboard(result.getUserRole(), username);
         } else {
             loginMessageLabel.setText("Login failed. Please try again.");
         }
@@ -43,11 +46,8 @@ public class LoginController {
     @FXML
     private void handleSwitchToRegister() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/register.fxml"));
-            Parent registerView = loader.load();
-
+            Parent registerView = FXMLLoader.load(getClass().getResource("/com/restaurantmanagementsystem/pos/view/register.fxml"));
             Stage stage = (Stage) createAccountLink.getScene().getWindow();
-
             stage.setScene(new Scene(registerView));
             stage.show();
         } catch (IOException e) {
@@ -56,48 +56,30 @@ public class LoginController {
         }
     }
 
-    private boolean authenticate(String username, String password) {
-        String loginQuery = "SELECT user_id, role FROM users WHERE username = ? AND password = ?";
-
-        try (Connection conn = DatabaseConnector.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(loginQuery)) {
-
-            pstmt.setString(1, username);
-            pstmt.setString(2, password);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    String role = rs.getString("role");
-                    int userId = rs.getInt("user_id");
-                    loadDashboard(role, userId);
-                    return true;
-                }
-            }
-        } catch (SQLException e) {
-            handleSqlException(e);
-        }
-        return false; // Login failed
-    }
-
-    private void loadDashboard(String role, int userId) {
+    private void loadDashboard(String role, String username) {
         try {
             FXMLLoader loader = new FXMLLoader();
-            String fxmlPath = "";
-            String username = usernameField.getText().trim();
+            String fxmlPath;
 
             if ("admin".equals(role)) {
                 fxmlPath = "/com/restaurantmanagementsystem/pos/view/admin.fxml";
             } else if ("customer".equals(role)) {
                 fxmlPath = "/com/restaurantmanagementsystem/pos/view/customer.fxml";
+            } else {
+                // Handle error or throw exception if the role is neither admin nor customer
+                loginMessageLabel.setText("Role not recognized.");
+                return;
             }
 
             loader.setLocation(getClass().getResource(fxmlPath));
             Parent dashboardView = loader.load();
 
-            Object controller = loader.getController();
-            if (controller instanceof AdminController) {
-                ((AdminController) controller).setUsername(username);
-            } else if (controller instanceof CustomerController) {
-                ((CustomerController) controller).setUsername(username);
+            if ("admin".equals(role)) {
+                AdminController adminController = loader.getController();
+                adminController.setUsername(username);
+            } else {
+                CustomerController customerController = loader.getController();
+                customerController.setUsername(username);
             }
 
             Stage stage = (Stage) usernameField.getScene().getWindow();
@@ -109,12 +91,13 @@ public class LoginController {
         }
     }
 
-
     private void handleSqlException(SQLException ex) {
+        // Log error and possibly inform the user
         System.err.println("SQLState: " + ex.getSQLState());
         System.err.println("Error Code: " + ex.getErrorCode());
         System.err.println("Message: " + ex.getMessage());
         ex.printStackTrace();
-        // In a production environment, handle this more gracefully and log appropriately
+        // Show error message to the user
+        loginMessageLabel.setText("A database error occurred. Please try again.");
     }
 }

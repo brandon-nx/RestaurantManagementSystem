@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.ViewOrdersController">
+    <TableView fx:id="ordersTableView" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="orderIdColumn" text="Order ID">
+                <cellValueFactory>
+                    <PropertyValueFactory property="orderId"/>
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn fx:id="customerNameColumn" text="Customer Name" minWidth="150">
+                <cellValueFactory>
+                    <PropertyValueFactory property="customerName"/>
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn fx:id="totalAmountColumn" text="Total Amount" minWidth="150">
+                <cellValueFactory>
+                    <PropertyValueFactory property="totalAmount"/>
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn fx:id="statusColumn" text="Status">
+                <cellValueFactory>
+                    <PropertyValueFactory property="status"/>
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn fx:id="orderDateColumn" text="Order Date">
+                <cellValueFactory>
+                    <PropertyValueFactory property="orderDate"/>
+                </cellValueFactory>
+            </TableColumn>
+            <TableColumn fx:id="actionColumn" text="Actions">
+                <!-- The cell factory will be set in the controller -->
+            </TableColumn>
+        </columns>
+    </TableView>
+</VBox>

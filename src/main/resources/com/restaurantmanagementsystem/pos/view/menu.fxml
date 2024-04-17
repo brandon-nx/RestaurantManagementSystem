@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.TabPane?>
-
-<?import javafx.scene.layout.BorderPane?>
-<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.MenuController" prefHeight="600.0" prefWidth="910.0">
-    <center>
-        <TabPane fx:id="menuTabPane" tabClosingPolicy="UNAVAILABLE" />
-    </center>
-</BorderPane>

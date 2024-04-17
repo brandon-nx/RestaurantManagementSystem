@@ -13,7 +13,7 @@ import java.util.Optional;
 
 public class AdminController {
     @FXML
-    private Button reportButton, inventoryButton, menuButton, signOutButton;
+    private Button reportButton, inventoryButton, viewOrdersButton, signOutButton;
     @FXML
     private Text welcomeText;
     @FXML
@@ -49,8 +49,8 @@ public class AdminController {
     }
 
     @FXML
-    private void handleMenuAction() {
-        switchToView("/com/restaurantmanagementsystem/pos/view/menu.fxml");
+    private void handleViewOrdersAction() {
+        switchToView("/com/restaurantmanagementsystem/pos/view/viewOrders.fxml");
     }
 
     // Sign Out Button

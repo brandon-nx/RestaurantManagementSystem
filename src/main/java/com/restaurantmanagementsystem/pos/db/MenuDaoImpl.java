@@ -16,7 +16,7 @@ public class MenuDaoImpl implements MenuDao {
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
-                String productId = rs.getString("ProductID");
+                String productId = rs.getString("product_id");
                 String name = rs.getString("name");
                 double price = rs.getDouble("price");
                 String imagePath = rs.getString("image_path");
@@ -44,7 +44,7 @@ public class MenuDaoImpl implements MenuDao {
             pstmt.setString(1, category);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    String productId = rs.getString("ProductID");
+                    String productId = rs.getString("product_id");
                     String name = rs.getString("name");
                     double price = rs.getDouble("price");
                     String imagePath = rs.getString("image_path");
@@ -68,7 +68,7 @@ public class MenuDaoImpl implements MenuDao {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     // Read the item properties from the ResultSet and return a new MenuItem
-                    String productId = rs.getString("ProductID");
+                    String productId = rs.getString("product_id");
                     String itemName = rs.getString("name");
                     double price = rs.getDouble("price");
                     String imagePath = rs.getString("image_path");
@@ -129,7 +129,7 @@ public class MenuDaoImpl implements MenuDao {
 
     public boolean updateMenuItem(MenuItem item) {
         // Replace these values with the correct table name and column names from your database schema
-        String sql = "UPDATE menu_items SET name = ?, price = ?, category = ?, stock = ?, status = ? WHERE productID = ?";
+        String sql = "UPDATE menu_items SET name = ?, price = ?, category = ?, stock = ?, status = ? WHERE product_id = ?";
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {

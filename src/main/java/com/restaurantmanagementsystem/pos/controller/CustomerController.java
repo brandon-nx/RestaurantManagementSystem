@@ -2,6 +2,7 @@ package com.restaurantmanagementsystem.pos.controller;
 
 import com.restaurantmanagementsystem.pos.db.MenuDao;
 import com.restaurantmanagementsystem.pos.db.MenuDaoImpl;
+import com.restaurantmanagementsystem.pos.model.Order;
 import com.restaurantmanagementsystem.pos.model.OrderItem;
 import com.restaurantmanagementsystem.pos.model.MenuItem;
 import javafx.collections.FXCollections;
@@ -25,26 +26,17 @@ import javafx.util.Callback;
 
 import java.io.IOException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class CustomerController {
-    public Button clearOrderButton;
-    public Button confirmOrderButton;
-    public Button receiptButton;
-    public Button appetizersButton;
-    public Button entreesButton;
-    public Button sidesButton;
-    public Button dessertsButton;
-    public Button beveragesButton;
     @FXML
-    private Text welcomeText;
+    public Button clearOrderButton, confirmOrderButton, receiptButton, appetizersButton, entreesButton, sidesButton, dessertsButton, beveragesButton, signOutButton;
     @FXML
-    private Text totalText;
-    @FXML
-    private Button signOutButton;
+    private Text welcomeText, totalText;
     @FXML
     private TableView<OrderItem> orderDetailsTable;
     @FXML
