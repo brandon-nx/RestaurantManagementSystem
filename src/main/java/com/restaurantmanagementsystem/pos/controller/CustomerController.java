@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 public class CustomerController {
     @FXML
-    public Button clearOrderButton, confirmOrderButton, receiptButton, appetizersButton, entreesButton, sidesButton, dessertsButton, beveragesButton, signOutButton;
+    private Button clearOrderButton, confirmOrderButton, receiptButton, appetizersButton, entreesButton, sidesButton, dessertsButton, beveragesButton, signOutButton;
     @FXML
     private Text welcomeText, totalText;
     @FXML
@@ -45,32 +45,32 @@ public class CustomerController {
     @FXML
     private TableColumn<OrderItem, String> productNameColumn;
     @FXML
-    private TableColumn<OrderItem, Number> quantityColumn;
-    @FXML
-    private TableColumn<OrderItem, Number> priceColumn;
-    private ObservableList<OrderItem> orderItems = FXCollections.observableArrayList();
+    private TableColumn<OrderItem, Number> quantityColumn, priceColumn;
     @FXML
     private VBox centerVBox;
-    private MenuDao menuDao = new MenuDaoImpl();
-    private OrderDao orderDao = new OrderDaoImpl();
-    private final List<OrderItem> allConfirmedOrders = new ArrayList<>();
     private User loggedInUser;
+    private final MenuDao menuDao = new MenuDaoImpl();
+    private final OrderDao orderDao = new OrderDaoImpl();
+    private ObservableList<OrderItem> orderItems = FXCollections.observableArrayList();
+    private List<OrderItem> allConfirmedOrders = new ArrayList<>();
 
     @FXML
     public void initialize() {
-        welcomeText.setText("Welcome, Customer");
+        setUpTable();
+        loadCategory("Appetizers");
+    }
+
+    private void setUpTable() {
         productNameColumn.setCellValueFactory(new PropertyValueFactory<>("productName"));
         quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
-
         orderDetailsTable.setItems(orderItems);
         handleRemoveItemAction();
-        loadCategory("Appetizers");
     }
 
     public void setUser(User user) {
         this.loggedInUser = user;
-        welcomeText.setText("Welcome, " + user.getUsername());
+        welcomeText.setText(String.format("Welcome, %s", user.getUsername()));
     }
 
     // Sidebar menu with categories
@@ -131,8 +131,6 @@ public class CustomerController {
         }
     }
 
-
-
     private VBox createMenuItemVBox(MenuItem menuItem) {
         VBox itemVBox = new VBox(10);
         itemVBox.setAlignment(Pos.CENTER);
@@ -185,29 +183,17 @@ public class CustomerController {
     // Sign Out Button
     @FXML
     private void handleSignOutAction() {
-        // Create a confirmation dialog.
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Sign Out");
-        confirmAlert.setHeaderText(null);
-        confirmAlert.setContentText("Are you sure you want to sign out?");
-
-        // Show the alert and wait for the user's response.
-        Optional<ButtonType> result = confirmAlert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            // If the user confirms, sign out and load the login view.
-            try {
-                // Load the login screen.
+        if (showConfirmationDialog("Sign Out", "Are you sure you want to sign out?")) {
+           try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/login.fxml")); // Correct the path if necessary.
                 Parent loginView = loader.load();
 
-                // Get the current stage (window) from any component.
                 Stage stage = (Stage) signOutButton.getScene().getWindow();
                 stage.setScene(new Scene(loginView));
                 stage.show();
 
             } catch (IOException e) {
                 e.printStackTrace();
-                // Here, set a message or log the error as appropriate.
             }
         }
     }
@@ -236,17 +222,14 @@ public class CustomerController {
                 .findFirst();
 
         if (existingOrderItem.isPresent()) {
-            // If the item already exists in the order, increase the quantity
             OrderItem existingItem = existingOrderItem.get();
             if (existingItem.getQuantity() + 1 <= menuItem.getStock()) {
                 existingItem.setQuantity(existingItem.getQuantity() + 1);
             } else {
-                // Show error message if the stock is not enough for adding one more item
                 showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
                 return;
             }
         } else {
-            // If the item is new to the order and there is stock, add the new item with quantity 1
             if (menuItem.getStock() > 0) {
                 orderItems.add(new OrderItem(menuItem.getName(), menuItem.getProductId(), 1, menuItem.getPrice()));
             } else {
@@ -256,7 +239,7 @@ public class CustomerController {
         }
 
         orderDetailsTable.refresh(); // Refresh the TableView to show updated quantities
-        calculateTotal(); // Recalculate the total price
+        totalText.setText(String.format("Total: RM%.2f", calculateSubtotal()));
     }
 
     // Remove Button
@@ -270,7 +253,7 @@ public class CustomerController {
                 btnRemove.setOnAction(event -> {
                     OrderItem item = getTableView().getItems().get(getIndex());
                     orderItems.remove(item);
-                    calculateTotal();
+                    totalText.setText(String.format("Total: RM%.2f", calculateSubtotal()));
                 });
             }
 
@@ -293,24 +276,12 @@ public class CustomerController {
     // Clear Order Button
     @FXML
     private void handleClearOrderAction() {
-        if (orderItems.isEmpty()) {
-            Alert emptyOrderAlert = new Alert(Alert.AlertType.WARNING, "No items in the order. Please add food to your order before confirming.");
-            emptyOrderAlert.setHeaderText("Empty Order");
-            emptyOrderAlert.showAndWait();
-            return;
-        }
-
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION, "Clear the entire order?", ButtonType.YES, ButtonType.NO);
-        confirmAlert.setHeaderText(null);
-        Optional<ButtonType> result = confirmAlert.showAndWait();
-
-        if (result.isPresent() && result.get() == ButtonType.YES) {
-            // Clear the entire order
+        if (!orderItems.isEmpty() && showConfirmationDialog("Clear Order", "Clear the entire order?")) {
             orderItems.clear();
-            // Refresh the TableView
             orderDetailsTable.refresh();
-            // Reset the total amount
-            calculateTotal();
+            totalText.setText(String.format("Total: RM%.2f", calculateSubtotal()));
+        } else if (orderItems.isEmpty()) {
+            showErrorAlert("Empty Order", "No items in the order. Please add food to your order before confirming.");
         }
     }
 
@@ -322,87 +293,106 @@ public class CustomerController {
             return;
         }
 
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION, "Do you want to confirm the order?");
-        confirmAlert.setTitle("Confirm Order");
-        confirmAlert.setHeaderText(null);
+        if (!showConfirmationDialog("Confirm Order", "Do you want to confirm the order?")) {
+            return;
+        }
 
-        Optional<ButtonType> result = confirmAlert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            boolean isStockSufficient = true;
+        if (!checkStockAvailability()) {
+            return;
+        }
 
-            // Check for stock availability before confirming the order
-            for (OrderItem orderItem : orderItems) {
-                MenuItem menuItem = menuDao.getMenuItemsByName(orderItem.getProductName());
-                if (menuItem != null && menuItem.getStock() < orderItem.getQuantity()) {
-                    showErrorAlert("Stock Error", "Not enough stock for " + orderItem.getProductName());
-                    isStockSufficient = false;
-                    break;
-                }
+        updateStock();
+        createOrder();
+        showReceiptWindow();
+
+        orderItems.clear();
+        orderDetailsTable.refresh();
+        totalText.setText(String.format("Total: RM%.2f", calculateSubtotal()));
+    }
+
+    private boolean checkStockAvailability() {
+        for (OrderItem orderItem : orderItems) {
+            MenuItem menuItem = menuDao.getMenuItemsByName(orderItem.getProductName());
+            if (menuItem != null && menuItem.getStock() < orderItem.getQuantity()) {
+                showErrorAlert("Stock Error", "Not enough stock for " + orderItem.getProductName());
+                return false;
             }
+        }
+        return true;
+    }
 
-            if (!isStockSufficient) {
-                return;
+    private void updateStock() {
+        for (OrderItem orderItem : orderItems) {
+            MenuItem menuItem = menuDao.getMenuItemsByName(orderItem.getProductName());
+            if (menuItem != null) {
+                menuItem.setStock(menuItem.getStock() - orderItem.getQuantity());
+                menuDao.updateMenuItem(menuItem);
             }
+        }
+    }
 
-            // Deduct the ordered quantity from the stock
-            for (OrderItem orderItem : orderItems) {
-                MenuItem menuItem = menuDao.getMenuItemsByName(orderItem.getProductName());
-                if (menuItem != null) {
-                    menuItem.setStock(menuItem.getStock() - orderItem.getQuantity());
-                    menuDao.updateMenuItem(menuItem);
-                }
-            }
+    private void createOrder() {
+        double subtotal = calculateSubtotal();
+        double serviceCharge = calculateServiceCharge(subtotal);
+        double tax = calculateTax(subtotal);
+        double total = calculateTotal(subtotal, serviceCharge, tax);
 
-            // Calculate the order details
-            double subtotal = orderItems.stream()
-                    .mapToDouble(item -> item.getQuantity() * item.getPrice())
-                    .sum();
-            double serviceCharge = subtotal * 0.10;
-            double tax = subtotal * 0.06;
-            double total = subtotal + serviceCharge + tax;
+        Order newOrder = new Order();
+        newOrder.setUserId(loggedInUser.getUserId());
+        newOrder.setOrderItems(new ArrayList<>(orderItems));
+        newOrder.setTotalAmount(total);
+        String orderId = orderDao.addOrder(newOrder);
+        newOrder.setOrderId(orderId);
 
-            // Insert order into database
-            Order newOrder = new Order();
-            newOrder.setUserId(loggedInUser.getUserId());
-            newOrder.setOrderItems(new ArrayList<>(orderItems));
-            newOrder.setTotalAmount(total);
-            String orderId = orderDao.addOrder(newOrder);
-            newOrder.setOrderId(orderId);
+        orderDao.addOrderItems(new ArrayList<>(orderItems), orderId);
 
-            orderDao.addOrderItems(new ArrayList<>(orderItems), orderId);
+        // Add current orderItems to allConfirmedOrders
+        allConfirmedOrders.addAll(orderItems);
 
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/receipt.fxml"));
-                Parent root = loader.load();
-                ReceiptController controller = loader.getController();
+        // Show order confirmed
+        showInformationAlert("Order Confirmed", "Order has been confirmed!");
+    }
 
-                // Pass order details to the ReceiptViewController
-                controller.setReceiptDetails(orderItems, subtotal, serviceCharge, tax, total);
+    private double calculateSubtotal() {
+        return orderItems.stream()
+                .mapToDouble(item -> item.getQuantity() * item.getPrice())
+                .sum();
+    }
 
-                // Add current orderItems to allConfirmedOrders
-                allConfirmedOrders.addAll(orderItems);
+    private double calculateServiceCharge(double subtotal) {
+        return subtotal * 0.10;
+    }
 
-                // Clear current order details
-                orderItems.clear();
-                orderDetailsTable.refresh();
-                totalText.setText("Total: RM0.0");
+    private double calculateTax(double subtotal) {
+        return subtotal * 0.06;
+    }
 
-                // Show order confirmed
-                Alert orderConfirmedAlert = new Alert(Alert.AlertType.INFORMATION, "Order has been confirmed!");
-                orderConfirmedAlert.showAndWait();
+    private double calculateTotal(double subtotal, double serviceCharge, double tax) {
+        return subtotal + serviceCharge + tax;
+    }
 
-                // Show receipt window
-                Stage stage = new Stage();
-                stage.setScene(new Scene(root));
-                stage.setTitle("Receipt");
-                stage.initModality(Modality.APPLICATION_MODAL);
-                stage.showAndWait();
-            } catch (IOException e) {
-                e.printStackTrace();
-                // Handle exception
-            }
-        } else {
-            // If user selects cancel, do nothing and return to order screen
+    private void showReceiptWindow() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/receipt.fxml"));
+            Parent root = loader.load();
+            ReceiptController controller = loader.getController();
+
+            // Pass order details to the ReceiptViewController
+            controller.setReceiptDetails(orderItems,
+                    calculateSubtotal(),
+                    calculateServiceCharge(calculateSubtotal()),
+                    calculateTax(calculateSubtotal()),
+                    calculateTotal(calculateSubtotal(), calculateServiceCharge(calculateSubtotal()), calculateTax(calculateSubtotal())));
+
+            // Show receipt window
+            Stage stage = new Stage();
+            stage.setScene(new Scene(root));
+            stage.setTitle("Receipt");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Handle exception
         }
     }
 
@@ -444,17 +434,6 @@ public class CustomerController {
         }
     }
 
-    // Calculate Total
-    private void calculateTotal() {
-        double subtotal = orderItems.stream()
-                .mapToDouble(item -> item.getQuantity() * item.getPrice())
-                .sum();
-        double serviceCharge = subtotal * 0.10;
-        double tax = subtotal * 0.06;
-        double total = subtotal + serviceCharge + tax;
-        totalText.setText(String.format("Total: RM%.2f", total));
-    }
-
     private void showErrorAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -469,5 +448,13 @@ public class CustomerController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private boolean showConfirmationDialog(String title, String content) {
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION, content);
+        confirmAlert.setTitle(title);
+        confirmAlert.setHeaderText(null);
+        Optional<ButtonType> result = confirmAlert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
     }
 }
