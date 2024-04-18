@@ -2,9 +2,12 @@ package com.restaurantmanagementsystem.pos.controller;
 
 import com.restaurantmanagementsystem.pos.db.MenuDao;
 import com.restaurantmanagementsystem.pos.db.MenuDaoImpl;
+import com.restaurantmanagementsystem.pos.db.OrderDao;
+import com.restaurantmanagementsystem.pos.db.OrderDaoImpl;
 import com.restaurantmanagementsystem.pos.model.Order;
 import com.restaurantmanagementsystem.pos.model.OrderItem;
 import com.restaurantmanagementsystem.pos.model.MenuItem;
+import com.restaurantmanagementsystem.pos.model.User;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -49,8 +52,9 @@ public class CustomerController {
     @FXML
     private VBox centerVBox;
     private MenuDao menuDao = new MenuDaoImpl();
+    private OrderDao orderDao = new OrderDaoImpl();
     private final List<OrderItem> allConfirmedOrders = new ArrayList<>();
-
+    private User loggedInUser;
 
     @FXML
     public void initialize() {
@@ -64,8 +68,9 @@ public class CustomerController {
         loadCategory("Appetizers");
     }
 
-    public void setUsername(String username) {
-        welcomeText.setText("Welcome, " + username);
+    public void setUser(User user) {
+        this.loggedInUser = user;
+        welcomeText.setText("Welcome, " + user.getUsername());
     }
 
     // Sidebar menu with categories
@@ -136,7 +141,7 @@ public class CustomerController {
         Button addButton = new Button("Add");
         addButton.setId("addButton");
         addButton.setOnAction(this::handleAddItemAction);
-        addButton.setUserData(new OrderItem(menuItem.getName(), 1, menuItem.getPrice()));
+        addButton.setUserData(new OrderItem(menuItem.getName(), menuItem.getProductId(), 1, menuItem.getPrice()));
 
         if (menuItem.getStock() <= 0) {
             addButton.setDisable(true);
@@ -211,21 +216,16 @@ public class CustomerController {
     @FXML
     private void handleAddItemAction(ActionEvent event) {
         Button addButton = (Button) event.getSource();
-        OrderItem orderItem = (OrderItem) addButton.getUserData();
-        MenuItem menuItem = menuDao.getMenuItemsByName(orderItem.getProductName()); // Note the method name changed to getMenuItemByName
-
+        MenuItem menuItem = menuDao.getMenuItemsByName(((OrderItem) addButton.getUserData()).getProductName());
         if (menuItem != null) {
             if (menuItem.getStock() > 0) {
-                // Here, you should check not just the stock is greater than 0,
-                // but also that it can cover the quantity being added to the order
+                OrderItem orderItem = new OrderItem(menuItem.getName(), menuItem.getProductId(), 1, menuItem.getPrice());
                 addOrUpdateOrderItem(orderItem, menuItem);
             } else {
-                // Show error message if stock is not sufficient
-                showErrorAlert("Out of Stock", menuItem.getName() + " is out of stock!");
+                showErrorAlert("Out of Stock", "The selected item is out of stock.");
             }
         } else {
-            // Show error message if item is not found
-            showErrorAlert("Item Not Found", "Could not find " + orderItem.getProductName() + " in the menu.");
+            showErrorAlert("Item Not Found", "Could not find the items in the menu.");
         }
     }
 
@@ -248,7 +248,7 @@ public class CustomerController {
         } else {
             // If the item is new to the order and there is stock, add the new item with quantity 1
             if (menuItem.getStock() > 0) {
-                orderItems.add(new OrderItem(itemToAdd.getProductName(), 1, itemToAdd.getPrice()));
+                orderItems.add(new OrderItem(menuItem.getName(), menuItem.getProductId(), 1, menuItem.getPrice()));
             } else {
                 showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
                 return;
@@ -341,7 +341,7 @@ public class CustomerController {
             }
 
             if (!isStockSufficient) {
-                return; // Stop the confirmation process if stock is insufficient
+                return;
             }
 
             // Deduct the ordered quantity from the stock
@@ -349,22 +349,32 @@ public class CustomerController {
                 MenuItem menuItem = menuDao.getMenuItemsByName(orderItem.getProductName());
                 if (menuItem != null) {
                     menuItem.setStock(menuItem.getStock() - orderItem.getQuantity());
-                    menuDao.updateMenuItem(menuItem); // Assume this method properly updates the stock in the database
+                    menuDao.updateMenuItem(menuItem);
                 }
             }
+
+            // Calculate the order details
+            double subtotal = orderItems.stream()
+                    .mapToDouble(item -> item.getQuantity() * item.getPrice())
+                    .sum();
+            double serviceCharge = subtotal * 0.10;
+            double tax = subtotal * 0.06;
+            double total = subtotal + serviceCharge + tax;
+
+            // Insert order into database
+            Order newOrder = new Order();
+            newOrder.setUserId(loggedInUser.getUserId());
+            newOrder.setOrderItems(new ArrayList<>(orderItems));
+            newOrder.setTotalAmount(total);
+            String orderId = orderDao.addOrder(newOrder);
+            newOrder.setOrderId(orderId);
+
+            orderDao.addOrderItems(new ArrayList<>(orderItems), orderId);
 
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/receipt.fxml"));
                 Parent root = loader.load();
                 ReceiptController controller = loader.getController();
-
-                // Calculate the order details
-                double subtotal = orderItems.stream()
-                        .mapToDouble(item -> item.getQuantity() * item.getPrice())
-                        .sum();
-                double serviceCharge = subtotal * 0.10;
-                double tax = subtotal * 0.06;
-                double total = subtotal + serviceCharge + tax;
 
                 // Pass order details to the ReceiptViewController
                 controller.setReceiptDetails(orderItems, subtotal, serviceCharge, tax, total);
@@ -436,9 +446,12 @@ public class CustomerController {
 
     // Calculate Total
     private void calculateTotal() {
-        double total = orderItems.stream()
+        double subtotal = orderItems.stream()
                 .mapToDouble(item -> item.getQuantity() * item.getPrice())
                 .sum();
+        double serviceCharge = subtotal * 0.10;
+        double tax = subtotal * 0.06;
+        double total = subtotal + serviceCharge + tax;
         totalText.setText(String.format("Total: RM%.2f", total));
     }
 

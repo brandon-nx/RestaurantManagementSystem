@@ -5,26 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d2595f03-9e07-430b-8b1d-85c3cef8c02b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/ViewOrdersController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/LoginDao.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/LoginDaoImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/OrderDao.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/OrderDaoImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/RegisterDao.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/RegisterDaoImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/Order.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/UserAuthenticationResult.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/viewOrders.fxml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/User.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/MainApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/MainApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/AdminController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/CustomerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/CustomerController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/LoginController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/LoginController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/MenuController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/RegisterController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/RegisterController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDaoImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDaoImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/admin.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/admin.fxml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/menu.fxml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/ReceiptController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/ReceiptController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/ViewOrdersController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/OrdersController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/OrderDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/OrderDao.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/OrderDaoImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/OrderDaoImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/OrderItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/OrderItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/UserAuthenticationResult.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/UserAuthenticationResult.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/viewOrders.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/orders.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -126,7 +119,8 @@
       <workItem from="1713098796172" duration="332000" />
       <workItem from="1713167163817" duration="2761000" />
       <workItem from="1713253892139" duration="599000" />
-      <workItem from="1713317747867" duration="8728000" />
+      <workItem from="1713317747867" duration="40009000" />
+      <workItem from="1713442754416" duration="6474000" />
     </task>
     <servers />
   </component>

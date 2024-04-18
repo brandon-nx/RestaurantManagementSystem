@@ -1,57 +1,54 @@
 package com.restaurantmanagementsystem.pos.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Order {
-    private int orderId;
-    private int userId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String orderId;
+    private String userId;
+    private String customerName;
+    private double totalAmount;
     private String status;
-    private List<OrderItem> items;
+    private List<OrderItem> orderItems = new ArrayList<>();
 
-    // Constructor
-    public Order(int orderId, int userId, LocalDateTime createdAt, LocalDateTime updatedAt, String status, List<OrderItem> items) {
-        this.orderId = orderId;
-        this.userId = userId;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.status = status;
-        this.items = items;
+    // Constructors
+    public Order() {
     }
 
-    // Getters and Setters
-    public int getOrderId() {
+    public Order(String orderId, String userId, String customerName, double totalAmount, String status, List<OrderItem> orderItems) {
+        this.orderId = orderId;
+        this.userId = userId;
+        this.customerName = customerName;
+        this.totalAmount = totalAmount;
+        this.status = status;
+        this.orderItems = new ArrayList<>();
+    }
+
+    // Getters and setters
+    public String getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(int orderId) {
+    public void setOrderId(String orderId) {
         this.orderId = orderId;
     }
 
-    public int getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(int userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
+    public double getTotalAmount() {
+        return totalAmount;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setTotalAmount(double totalAmount) {
+        this.totalAmount = totalAmount;
     }
 
     public String getStatus() {
@@ -62,24 +59,39 @@ public class Order {
         this.status = status;
     }
 
-    public List<OrderItem> getItems() {
-        return items;
+    public List<OrderItem> getOrderItems() {
+        return orderItems;
     }
 
-    public void setItems(List<OrderItem> items) {
-        this.items = items;
+    public void setOrderItems(List<OrderItem> orderItems) {
+        this.orderItems = orderItems;
+    }
+    public String getCustomerName() {
+        return customerName;
     }
 
-    // toString Method
+    public void setCustomerName(String customerName) {
+        this.customerName = customerName;
+    }
+
+    public String getOrderItemsAsString() {
+        if (orderItems == null || orderItems.isEmpty()) {
+            return "No items"; // or any other placeholder text
+        }
+        return orderItems.stream()
+                .map(OrderItem::getProductName) // Assuming OrderItem has getProductName method
+                .collect(Collectors.joining(", "));
+    }
+
+    // ToString method
     @Override
     public String toString() {
         return "Order{" +
-                "orderId=" + orderId +
+                "orderId='" + orderId + '\'' +
                 ", userId=" + userId +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
+                ", totalAmount=" + totalAmount +
                 ", status='" + status + '\'' +
-                ", items=" + items +
+                ", items=" + orderItems +
                 '}';
     }
 }

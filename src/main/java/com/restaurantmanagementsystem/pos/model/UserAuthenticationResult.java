@@ -1,9 +1,9 @@
 package com.restaurantmanagementsystem.pos.model;
 
 public class UserAuthenticationResult {
-    private final boolean authenticated;
-    private final String userRole;
-    private final String userId;
+    private boolean authenticated;
+    private String userRole;
+    private String userId;
 
     public UserAuthenticationResult(boolean authenticated, String userRole, String userId) {
         this.authenticated = authenticated;
@@ -21,5 +21,9 @@ public class UserAuthenticationResult {
 
     public String getUserId() {
         return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 }

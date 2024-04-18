@@ -4,7 +4,7 @@
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.ViewOrdersController">
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.OrdersController">
     <TableView fx:id="ordersTableView" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn fx:id="orderIdColumn" text="Order ID">
@@ -12,9 +12,9 @@
                     <PropertyValueFactory property="orderId"/>
                 </cellValueFactory>
             </TableColumn>
-            <TableColumn fx:id="customerNameColumn" text="Customer Name" minWidth="150">
+            <TableColumn fx:id="orderItemsColumn" text="Order Items">
                 <cellValueFactory>
-                    <PropertyValueFactory property="customerName"/>
+                    <PropertyValueFactory property="orderItemsAsString"/>
                 </cellValueFactory>
             </TableColumn>
             <TableColumn fx:id="totalAmountColumn" text="Total Amount" minWidth="150">
@@ -27,9 +27,9 @@
                     <PropertyValueFactory property="status"/>
                 </cellValueFactory>
             </TableColumn>
-            <TableColumn fx:id="orderDateColumn" text="Order Date">
+            <TableColumn fx:id="customerNameColumn" text="Customer Name" minWidth="150">
                 <cellValueFactory>
-                    <PropertyValueFactory property="orderDate"/>
+                    <PropertyValueFactory property="customerName"/>
                 </cellValueFactory>
             </TableColumn>
             <TableColumn fx:id="actionColumn" text="Actions">

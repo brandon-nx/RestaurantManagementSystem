@@ -1,5 +1,9 @@
 package com.restaurantmanagementsystem.pos.controller;
 
+import com.restaurantmanagementsystem.pos.db.OrderDao;
+import com.restaurantmanagementsystem.pos.db.OrderDaoImpl;
+import com.restaurantmanagementsystem.pos.model.Order;
+import com.restaurantmanagementsystem.pos.model.User;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -9,6 +13,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 public class AdminController {
@@ -18,13 +23,15 @@ public class AdminController {
     private Text welcomeText;
     @FXML
     private BorderPane mainBorderPane;
+    private User loggedInUser;
 
     public void initialize() {
         welcomeText.setText("Welcome, Admin111");
     }
 
-    public void setUsername(String username) {
-        welcomeText.setText("Welcome, " + username);
+    public void setUser(User user) {
+        this.loggedInUser = user;
+        welcomeText.setText("Welcome, " + user.getUsername());
     }
 
     private void switchToView(String fxmlFile) {
@@ -50,7 +57,7 @@ public class AdminController {
 
     @FXML
     private void handleViewOrdersAction() {
-        switchToView("/com/restaurantmanagementsystem/pos/view/viewOrders.fxml");
+        switchToView("/com/restaurantmanagementsystem/pos/view/orders.fxml");
     }
 
     // Sign Out Button

@@ -2,6 +2,7 @@ package com.restaurantmanagementsystem.pos.controller;
 
 import com.restaurantmanagementsystem.pos.db.LoginDao;
 import com.restaurantmanagementsystem.pos.db.LoginDaoImpl;
+import com.restaurantmanagementsystem.pos.model.User;
 import com.restaurantmanagementsystem.pos.model.UserAuthenticationResult;
 import javafx.fxml.FXML;
 import javafx.scene.control.Hyperlink;
@@ -36,12 +37,22 @@ public class LoginController {
 
         UserAuthenticationResult result = loginDao.authenticate(username, password);
         if (result.isAuthenticated()) {
+            // Assuming authenticate method has been updated to return User object as part of the result
+            User loggedInUser = new User(
+                    result.getUserId(),
+                    username,
+                    null, // Consider not storing the password in memory
+                    result.getUserRole(),
+                    null, // Contact might not be available at this stage
+                    null  // Address might not be available at this stage
+            );
             loginMessageLabel.setText("Login successful.");
-            loadDashboard(result.getUserRole(), username);
+            loadDashboard(loggedInUser);
         } else {
             loginMessageLabel.setText("Login failed. Please try again.");
         }
     }
+
 
     @FXML
     private void handleSwitchToRegister() {
@@ -56,32 +67,32 @@ public class LoginController {
         }
     }
 
-    private void loadDashboard(String role, String username) {
+    private void loadDashboard(User user) {
         try {
-            FXMLLoader loader = new FXMLLoader();
-            String fxmlPath;
-
-            if ("admin".equals(role)) {
+            String fxmlPath = "";
+            if ("admin".equals(user.getRole())) {
                 fxmlPath = "/com/restaurantmanagementsystem/pos/view/admin.fxml";
-            } else if ("customer".equals(role)) {
+            } else if ("customer".equals(user.getRole())) {
                 fxmlPath = "/com/restaurantmanagementsystem/pos/view/customer.fxml";
             } else {
-                // Handle error or throw exception if the role is neither admin nor customer
                 loginMessageLabel.setText("Role not recognized.");
                 return;
             }
 
-            loader.setLocation(getClass().getResource(fxmlPath));
+            // Now the FXMLLoader is initialized with the location of the FXML file
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Parent dashboardView = loader.load();
 
-            if ("admin".equals(role)) {
+            // After the FXML file has been loaded, get the controller and pass the user
+            if ("admin".equals(user.getRole())) {
                 AdminController adminController = loader.getController();
-                adminController.setUsername(username);
-            } else {
+                adminController.setUser(user);
+            } else if ("customer".equals(user.getRole())) {
                 CustomerController customerController = loader.getController();
-                customerController.setUsername(username);
+                customerController.setUser(user);
             }
 
+            // Show the dashboard
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(new Scene(dashboardView));
             stage.show();
@@ -89,15 +100,5 @@ public class LoginController {
             e.printStackTrace();
             loginMessageLabel.setText("Failed to load the dashboard.");
         }
-    }
-
-    private void handleSqlException(SQLException ex) {
-        // Log error and possibly inform the user
-        System.err.println("SQLState: " + ex.getSQLState());
-        System.err.println("Error Code: " + ex.getErrorCode());
-        System.err.println("Message: " + ex.getMessage());
-        ex.printStackTrace();
-        // Show error message to the user
-        loginMessageLabel.setText("A database error occurred. Please try again.");
     }
 }
