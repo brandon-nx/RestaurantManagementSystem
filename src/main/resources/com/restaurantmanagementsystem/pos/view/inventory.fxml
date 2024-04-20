@@ -23,6 +23,9 @@
                     <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                     </columnResizePolicy>
+                    <padding>
+                        <Insets top="5" right="5" bottom="5" left="5"/>
+                    </padding>
                 </TableView>
             </VBox>
 
@@ -76,9 +79,9 @@
                         </HBox>
                     </VBox>
                     <HBox spacing="15">
-                        <Button fx:id="addButton" onAction="#handleAddAction" minWidth="60" text="Add" />
-                        <Button fx:id="updateButton" onAction="#handleUpdateAction" minWidth="60" text="Update" />
-                        <Button fx:id="clearButton" onAction="#handleClearAction" minWidth="60" text="Clear" />
+                        <Button onAction="#handleAddAction" minWidth="60" text="Add" />
+                        <Button onAction="#handleUpdateAction" minWidth="60" text="Update" />
+                        <Button onAction="#handleClearAction" minWidth="60" text="Clear" />
                         <padding>
                             <Insets left="5" top="5" />
                         </padding>
@@ -89,7 +92,7 @@
                     <StackPane style="-fx-border-color: black; -fx-border-width: 2; -fx-padding: 5;">
                         <ImageView fx:id="productImageView" fitHeight="200" fitWidth="150" preserveRatio="true"/>
                     </StackPane>
-                    <Button fx:id="importButton" minWidth="80" onAction="#handleImportAction" text="Import Image"/>
+                    <Button minWidth="80" onAction="#handleImportAction" text="Import Image"/>
                     <padding>
                         <Insets left="5" top="5" right="5"/>
                     </padding>

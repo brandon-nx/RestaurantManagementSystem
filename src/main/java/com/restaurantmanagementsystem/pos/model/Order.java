@@ -11,6 +11,8 @@ public class Order {
     private String customerName;
     private double totalAmount;
     private String status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private List<OrderItem> orderItems = new ArrayList<>();
 
     // Constructors
@@ -23,6 +25,8 @@ public class Order {
         this.customerName = customerName;
         this.totalAmount = totalAmount;
         this.status = status;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
         this.orderItems = new ArrayList<>();
     }
 
@@ -57,6 +61,23 @@ public class Order {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    // Getter and Setter for updatedAt
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
     public List<OrderItem> getOrderItems() {

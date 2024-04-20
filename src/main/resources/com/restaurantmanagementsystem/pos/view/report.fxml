@@ -1,11 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.TabPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
 
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.control.Label?>
-<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.ReportController" prefHeight="600.0" prefWidth="910.0">
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.ReportController" prefHeight="600.0" prefWidth="910.0">
     <center>
-        <Label text="Hello"/>
+        <VBox spacing="20">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <!-- Report Selection Area -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Report Type:" />
+                <ComboBox fx:id="reportTypeComboBox">
+                    <items>
+                        <FXCollections fx:factory="observableArrayList">
+                            <!-- Report type added in controller -->
+                        </FXCollections>
+                    </items>
+                </ComboBox>
+            </HBox>
+
+            <!-- Filter Options Area -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="From:" />
+                <DatePicker fx:id="startDatePicker" />
+                <Label text="To:" />
+                <DatePicker fx:id="endDatePicker" />
+                <TextField fx:id="categoryFilter" promptText="Filter by category"/>
+                <Button text="Apply Filters" onAction="#onFilterApplied"/>
+            </HBox>
+
+            <!-- Report Display Area (Table and Chart) -->
+            <SplitPane dividerPositions="0.3" VBox.vgrow="ALWAYS">
+                <VBox maxWidth="Infinity">
+                    <TableView fx:id="reportTableView" VBox.vgrow="ALWAYS">
+                        <columns>
+                            <!-- Report columns and cells added in controller -->
+                        </columns>
+                    </TableView>
+                </VBox>
+                <VBox maxWidth="Infinity" VBox.vgrow="ALWAYS">
+                    <BarChart fx:id="salesBarChart" VBox.vgrow="ALWAYS">
+                        <xAxis>
+                            <CategoryAxis fx:id="xAxis" label="Date"/>
+                        </xAxis>
+                        <yAxis>
+                            <NumberAxis fx:id="yAxis" label="Sales ($)"/>
+                        </yAxis>
+                    </BarChart>
+                </VBox>
+            </SplitPane>
+        </VBox>
     </center>
 </BorderPane>

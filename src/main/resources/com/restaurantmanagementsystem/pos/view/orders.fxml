@@ -3,38 +3,52 @@
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.cell.PropertyValueFactory?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.BorderPane?>
 
-<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.OrdersController">
-    <TableView fx:id="ordersTableView" VBox.vgrow="ALWAYS">
-        <columns>
-            <TableColumn fx:id="orderIdColumn" text="Order ID">
-                <cellValueFactory>
-                    <PropertyValueFactory property="orderId"/>
-                </cellValueFactory>
-            </TableColumn>
-            <TableColumn fx:id="orderItemsColumn" text="Order Items">
-                <cellValueFactory>
-                    <PropertyValueFactory property="orderItemsAsString"/>
-                </cellValueFactory>
-            </TableColumn>
-            <TableColumn fx:id="totalAmountColumn" text="Total Amount" minWidth="150">
-                <cellValueFactory>
-                    <PropertyValueFactory property="totalAmount"/>
-                </cellValueFactory>
-            </TableColumn>
-            <TableColumn fx:id="statusColumn" text="Status">
-                <cellValueFactory>
-                    <PropertyValueFactory property="status"/>
-                </cellValueFactory>
-            </TableColumn>
-            <TableColumn fx:id="customerNameColumn" text="Customer Name" minWidth="150">
-                <cellValueFactory>
-                    <PropertyValueFactory property="customerName"/>
-                </cellValueFactory>
-            </TableColumn>
-            <TableColumn fx:id="actionColumn" text="Actions">
-                <!-- The cell factory will be set in the controller -->
-            </TableColumn>
-        </columns>
-    </TableView>
-</VBox>
+<?import javafx.geometry.Insets?>
+<BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.OrdersController" prefHeight="600.0" prefWidth="910.0">
+    <center>
+        <VBox>
+            <TableView fx:id="ordersTableView" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="orderIdColumn" text="Order ID">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="orderId"/>
+                        </cellValueFactory>
+                    </TableColumn>
+                    <TableColumn fx:id="orderItemsColumn" text="Order Items">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="orderItemsAsString"/>
+                        </cellValueFactory>
+                    </TableColumn>
+                    <TableColumn fx:id="totalAmountColumn" text="Total Amount" minWidth="150">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="totalAmount"/>
+                        </cellValueFactory>
+                    </TableColumn>
+                    <TableColumn fx:id="statusColumn" text="Status">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="status"/>
+                        </cellValueFactory>
+                    </TableColumn>
+                    <TableColumn fx:id="customerNameColumn" text="Customer">
+                        <cellValueFactory>
+                            <PropertyValueFactory property="customerName"/>
+                        </cellValueFactory>
+                    </TableColumn>
+                    <TableColumn fx:id="actionColumn" text="Actions">
+                        <!-- The cell factory will be set in the controller -->
+                    </TableColumn>
+                </columns>
+
+                <columnResizePolicy>
+                    <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                </columnResizePolicy>
+
+                <padding>
+                    <Insets top="5" right="5" bottom="5" left="5"/>
+                </padding>
+            </TableView>
+        </VBox>
+    </center>
+</BorderPane>

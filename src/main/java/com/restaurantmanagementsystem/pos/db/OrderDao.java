@@ -9,7 +9,10 @@ public interface OrderDao {
     String addOrder(Order order);
     void addOrderItems(List<OrderItem> orderItems, String orderId);
 
-    List<Order> getAllOrders();
     void updateOrderStatus(Order order);
+
+    List<Order> getAllOrders();
+    List<Order> getCompletedOrders();
+
     String generateNewOrderId();
 }

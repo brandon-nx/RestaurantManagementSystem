@@ -27,11 +27,12 @@ public class AdminController {
 
     public void initialize() {
         welcomeText.setText("Welcome, Admin111");
+        handleReportAction();
     }
 
     public void setUser(User user) {
         this.loggedInUser = user;
-        welcomeText.setText("Welcome, " + user.getUsername());
+        welcomeText.setText(String.format("Welcome, %s", user.getUsername()));
     }
 
     private void switchToView(String fxmlFile) {
@@ -63,19 +64,10 @@ public class AdminController {
     // Sign Out Button
     @FXML
     private void handleSignOutAction() {
-        // Create a confirmation dialog.
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Sign Out");
-        confirmAlert.setHeaderText(null);
-        confirmAlert.setContentText("Are you sure you want to sign out?");
-
-        // Show the alert and wait for the user's response.
-        Optional<ButtonType> result = confirmAlert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            // If the user confirms, sign out and load the login view.
+        if (showConfirmationDialog("Sign Out", "Are you sure you want to sign out?")) {
             try {
                 // Load the login screen.
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/login.fxml")); // Correct the path if necessary.
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/login.fxml"));
                 Parent loginView = loader.load();
 
                 // Get the current stage (window) from any component.
@@ -88,5 +80,14 @@ public class AdminController {
                 // Here, set a message or log the error as appropriate.
             }
         }
+    }
+
+    private boolean showConfirmationDialog(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
     }
 }

@@ -13,6 +13,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
 import java.io.File;
+import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,30 +33,24 @@ public class InventoryController {
     private TableView<MenuItem> productTable;
     private MenuDao menuDao = new MenuDaoImpl();
     private String currentImagePath;
+    private static final List<String> VALID_CATEGORIES = Arrays.asList("Appetizers", "Entrées", "Sides", "Desserts", "Beverages");
+    private static final List<String> VALID_STATUSES = Arrays.asList("available", "unavailable");
+
+
 
     public void initialize() {
-        // Set up the ComboBox for types
-        typeComboBox.setItems(FXCollections.observableArrayList(
-                "Appetizers", "Entrées", "Sides", "Desserts", "Beverages"
-        ));
-
-        // Set up the ComboBox for status
-        statusComboBox.setItems(FXCollections.observableArrayList(
-                "available", "unavailable"
-        ));
-
-        handleProductTableView();
+        setupComboBoxes();
+        setupProductTableView();
         setupDeleteColumn();
-
-        productTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                fillInputFieldsWithSelectedItemDetails(newSelection);
-            }
-        });
+        setupSelectionModel();
     }
 
-    // Load All Product Information
-    private void handleProductTableView() {
+    private void setupComboBoxes() {
+        typeComboBox.setItems(FXCollections.observableArrayList(VALID_CATEGORIES));
+        statusComboBox.setItems(FXCollections.observableArrayList(VALID_STATUSES));
+    }
+
+    private void setupProductTableView() {
         setupColumn(productIdColumn, "productId");
         setupColumn(productNameColumn, "name");
         setupColumn(priceColumn, "price");
@@ -125,6 +121,14 @@ public class InventoryController {
         });
     }
 
+    private void setupSelectionModel() {
+        productTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (newSelection != null) {
+                fillInputFieldsWithSelectedItemDetails(newSelection);
+            }
+        });
+    }
+
     private void loadProducts() {
         // Clear existing items
         productTable.getItems().clear();
@@ -139,79 +143,40 @@ public class InventoryController {
     // Add Product Button
     @FXML
     private void handleAddAction() {
-        // Check if any field is empty
-        if (productNameField.getText().trim().isEmpty() ||
-                stockField.getText().trim().isEmpty() ||
-                priceField.getText().trim().isEmpty() ||
-                typeComboBox.getSelectionModel().isEmpty() ||
-                statusComboBox.getSelectionModel().isEmpty() ||
-                currentImagePath == null || currentImagePath.isEmpty()) {
-
-            showErrorAlert("Input Error", "Please fill in all the fields and import an image.");
+        // Check if all fields are filled
+        if (!validateProductInputs()) {
             return;
         }
 
-        // Proceed with processing since all fields are filled
-        String productId = generateProductId();
-        String name = productNameField.getText().trim();
-        String category = typeComboBox.getSelectionModel().getSelectedItem().toString();
-        String status = statusComboBox.getSelectionModel().getSelectedItem().toString();
-
-        // Parsing and validation of number fields
-        int stock;
-        try {
-            stock = Integer.parseInt(stockField.getText().trim());
-        } catch (NumberFormatException e) {
-            showErrorAlert("Input Error", "Please enter a valid number for stock.");
-            return;
-        }
-
-        double price;
-        try {
-            price = Double.parseDouble(priceField.getText().trim());
-            price = Math.round(price * 100.0) / 100.0; // Ensures the price is with two decimal places
-        } catch (NumberFormatException e) {
-            showErrorAlert("Input Error", "Please enter a valid price.");
-            return;
-        }
-
-        MenuItem newItem = new MenuItem(productId, name, price, currentImagePath, category, stock, status);
+        // Proceed add item
+        MenuItem newItem = createMenuItemFromInputs();
         boolean success = menuDao.addMenuItems(newItem);
 
         if (success) {
             handleClearAction();
             loadProducts();
+            showInformationAlert("Success", "Product added successfully.");
         } else {
             showErrorAlert("Add Item Failed", "Could not add the new menu item to the database.");
         }
     }
 
-    private String generateProductId() {
-        int lastIdNumber = menuDao.getLastIdNumber(); // This method should return the numeric part of the last ID
-        int nextIdNumber = lastIdNumber + 1;
-        return String.format("P-%03d", nextIdNumber);
-    }
-
     // Delete Product Button
-    @FXML
-    private void handleDeleteAction(MenuItem itemToDelete) {
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmAlert.setTitle("Confirm Deletion");
-        confirmAlert.setHeaderText("Delete Item");
-        confirmAlert.setContentText("Are you sure you want to delete this item?");
-
-        Optional<ButtonType> result = confirmAlert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            // If user confirmed, proceed with deletion
-            boolean success = menuDao.deleteMenuItem(itemToDelete);
-            if (success) {
-                // If successful, remove the item from the TableView
-                productTable.getItems().remove(itemToDelete);
-                showInformationAlert("Item Deleted", "The item was successfully deleted.");
-            } else {
-                // If unsuccessful, show an error message
-                showErrorAlert("Deletion Failed", "Could not delete the item from the database.");
+    public void handleDeleteAction(MenuItem itemToDelete) {
+        try {
+            if (menuDao.deleteMenuItem(itemToDelete)) {
+                if (showConfirmationAlert("Confirm Deletion", "Are you sure you want to delete this item?")) {
+                    boolean success = menuDao.deleteMenuItem(itemToDelete);
+                    if (success) {
+                        productTable.getItems().remove(itemToDelete);
+                        showInformationAlert("Item Deleted", "The item was successfully deleted.");
+                    } else {
+                        showErrorAlert("Deletion Failed", "Could not delete the item from the database.");
+                    }
+                }
             }
+        } catch (SQLException e) {
+            showErrorAlert("Delete Error", e.getMessage());
         }
     }
 
@@ -220,45 +185,20 @@ public class InventoryController {
         // Get the selected product
         MenuItem selectedItem = productTable.getSelectionModel().getSelectedItem();
 
-        // Check if a product is actually selected
-        if (selectedItem == null) {
-            showErrorAlert("Update Error", "No product selected for update.");
-            return;
-        }
-
-        // Check if all fields are filled
-//        if (productNameField.getText().trim().isEmpty() ||
-//                stockField.getText().trim().isEmpty() ||
-//                priceField.getText().trim().isEmpty() ||
-//                typeComboBox.getSelectionModel().isEmpty() ||
-//                statusComboBox.getSelectionModel().isEmpty() ||
-//                currentImagePath == null || currentImagePath.isEmpty()) {
-//
-//            showErrorAlert("Input Error", "Please fill in all the fields and import an image.");
-//            return;
-//        }
+        // Check if a product is selected
+        if (!isProductSelected(selectedItem)) return;
 
         // Check if any information has changed
-        if (productNameField.getText().trim().equals(selectedItem.getName()) &&
-                stockField.getText().trim().equals(String.valueOf(selectedItem.getStock())) &&
-                priceField.getText().trim().equals(String.format("%.2f", selectedItem.getPrice())) &&
-                typeComboBox.getValue().equals(selectedItem.getCategory()) &&
-                statusComboBox.getValue().equals(selectedItem.getStatus()) &&
-                currentImagePath.equals(selectedItem.getImagePath())) {
-
+        if (!isInformationChanged(selectedItem)) {
             showInformationAlert("No Change", "No information has changed.");
             return;
         }
 
-        // Confirm the update action with the admin
-        Alert confirmUpdateAlert = new Alert(Alert.AlertType.CONFIRMATION, "Confirm Update", ButtonType.YES, ButtonType.CANCEL);
-        confirmUpdateAlert.setHeaderText("Update Product");
-        confirmUpdateAlert.setContentText("Are you sure you want to update the selected product?");
+        // Check if all fields are filled
+        if (!validateProductInputs()) return;
 
-        Optional<ButtonType> result = confirmUpdateAlert.showAndWait();
-
-        if (result.isPresent() && result.get() == ButtonType.YES) {
-            // Parse and validate the new values
+        // Proceed update item
+        if (showConfirmationAlert("Confirm Update", "Are you sure you want to update the selected product?")) {
             try {
                 int newStock = Integer.parseInt(stockField.getText().trim());
                 double newPrice = Double.parseDouble(priceField.getText().trim());
@@ -266,8 +206,8 @@ public class InventoryController {
 
                 // Set the new values to the selected product
                 selectedItem.setName(productNameField.getText().trim());
-                selectedItem.setCategory(typeComboBox.getSelectionModel().getSelectedItem());
-                selectedItem.setStatus(statusComboBox.getSelectionModel().getSelectedItem());
+                selectedItem.setCategory(typeComboBox.getValue());
+                selectedItem.setStatus(statusComboBox.getValue());
                 selectedItem.setStock(newStock);
                 selectedItem.setPrice(newPrice);
                 selectedItem.setImagePath(currentImagePath);
@@ -330,6 +270,86 @@ public class InventoryController {
         currentImagePath = item.getImagePath();
     }
 
+    private MenuItem createMenuItemFromInputs() {
+        String productId = generateProductId();
+        String name = productNameField.getText().trim();
+        String category = typeComboBox.getValue();
+        String status = statusComboBox.getValue();
+        int stock = Integer.parseInt(stockField.getText().trim());
+        double price = Double.parseDouble(priceField.getText().trim());
+
+        return new MenuItem(productId, name, price, currentImagePath, category, stock, status);
+    }
+
+    private boolean validateProductInputs() {
+        // Check if any field is empty
+        if (productNameField.getText().trim().isEmpty() ||
+                stockField.getText().trim().isEmpty() ||
+                priceField.getText().trim().isEmpty() ||
+                typeComboBox.getSelectionModel().isEmpty() ||
+                statusComboBox.getSelectionModel().isEmpty() ||
+                currentImagePath == null || currentImagePath.isEmpty()) {
+            showErrorAlert("Input Error", "Please fill in all the fields and import an image.");
+            return false;
+        }
+
+        try {
+            int stock = Integer.parseInt(stockField.getText().trim());
+        } catch (NumberFormatException e) {
+            showErrorAlert("Input Error", "Please enter a valid number for stock.");
+            return false;
+        }
+
+        try {
+            double price = Double.parseDouble(priceField.getText().trim());
+            price = Math.round(price * 100.0) / 100.0;
+        } catch (NumberFormatException e) {
+            showErrorAlert("Input Error", "Please enter a valid price.");
+            return false;
+        }
+
+        String selectedCategory = typeComboBox.getValue();
+        if (selectedCategory == null || !VALID_CATEGORIES.contains(selectedCategory)) {
+            showErrorAlert("Input Error", "Please select a valid category.");
+            return false;
+        }
+
+        // Validate the selected status
+        String selectedStatus = statusComboBox.getValue();
+        if (selectedStatus == null || !VALID_STATUSES.contains(selectedStatus)) {
+            showErrorAlert("Input Error", "Please select a valid status.");
+            return false;
+        }
+
+        // If all checks pass, return true
+        return true;
+    }
+
+    private String generateProductId() {
+        int lastIdNumber = menuDao.getLastIdNumber();
+        int nextIdNumber = lastIdNumber + 1;
+        return String.format("P-%03d", nextIdNumber);
+    }
+
+    private boolean isProductSelected(MenuItem selectedItem) {
+        if (selectedItem == null) {
+            showErrorAlert("Update Error", "No product selected for update.");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isInformationChanged(MenuItem selectedItem) {
+        boolean nameChanged = !productNameField.getText().trim().equals(selectedItem.getName());
+        boolean stockChanged = !stockField.getText().trim().equals(String.valueOf(selectedItem.getStock()));
+        boolean priceChanged = !priceField.getText().trim().equals(String.format("%.2f", selectedItem.getPrice()));
+        boolean categoryChanged = !typeComboBox.getValue().equals(selectedItem.getCategory());
+        boolean statusChanged = !statusComboBox.getValue().equals(selectedItem.getStatus());
+        boolean imageChanged = currentImagePath != null && !currentImagePath.equals(selectedItem.getImagePath());
+
+        return nameChanged || stockChanged || priceChanged || categoryChanged || statusChanged || imageChanged;
+    }
+
     private void showErrorAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -344,5 +364,14 @@ public class InventoryController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private boolean showConfirmationAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        Optional<ButtonType> result = alert.showAndWait();
+        return result.isPresent() && result.get() == ButtonType.OK;
     }
 }

@@ -51,7 +51,7 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public void updateOrderStatus(Order order) {
-        String sql = "UPDATE orders SET status = ? WHERE order_id = ?"; // Adjust SQL to match your schema
+        String sql = "UPDATE orders SET status = ?, updated_at = NOW() WHERE order_id = ?"; // Adjust SQL to match your schema
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -68,7 +68,7 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<Order> getAllOrders() {
         List<Order> orders = new ArrayList<>();
-        String sql = "SELECT o.order_id, o.user_id, u.username AS customer_name, o.total_amount, o.status " +
+        String sql = "SELECT o.order_id, o.user_id, u.username AS customer_name, o.total_amount, o.status, o.created_at, o.updated_at " +
                 "FROM orders o " +
                 "JOIN users u ON o.user_id = u.user_id";
 
@@ -80,18 +80,22 @@ public class OrderDaoImpl implements OrderDao {
                 Order order = new Order();
                 order.setOrderId(rs.getString("order_id"));
                 order.setUserId(rs.getString("user_id"));
-                order.setCustomerName(rs.getString("customer_name")); // assuming you have customer name column
+                order.setCustomerName(rs.getString("customer_name")); // This assumes you have a customerName field in Order
                 order.setTotalAmount(rs.getDouble("total_amount"));
                 order.setStatus(rs.getString("status"));
-                order.setOrderItems(getOrderItemsByOrderId(order.getOrderId())); // You need to implement this method
+                order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                order.setUpdatedAt(rs.getTimestamp("updated_at").toLocalDateTime());
+                order.setOrderItems(getOrderItemsByOrderId(order.getOrderId()));
                 orders.add(order);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
+
+        } catch (SQLException e) {
+            e.printStackTrace(); // Consider more robust error handling
+        }
         return orders;
     }
+
 
     private List<OrderItem> getOrderItemsByOrderId(String orderId) {
         List<OrderItem> orderItems = new ArrayList<>();
@@ -116,6 +120,30 @@ public class OrderDaoImpl implements OrderDao {
         }
 
         return orderItems;
+    }
+
+    @Override
+    public List<Order> getCompletedOrders() {
+        List<Order> orders = new ArrayList<>();
+        String sql = "SELECT * FROM orders WHERE status = 'done'";
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                Order order = new Order();
+                order.setOrderId(rs.getString("order_id"));
+                order.setUserId(rs.getString("user_id"));
+                order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                order.setTotalAmount(rs.getDouble("total_amount"));
+
+                orders.add(order);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return orders;
     }
 
     public String generateNewOrderId() {
