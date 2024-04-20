@@ -4,8 +4,10 @@ import com.restaurantmanagementsystem.pos.model.Order;
 import com.restaurantmanagementsystem.pos.model.OrderItem;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.*;
 
 public class OrderDaoImpl implements OrderDao {
     @Override
@@ -123,27 +125,167 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public List<Order> getCompletedOrders() {
+    public List<Order> getOrdersByDate(LocalDate date) {
         List<Order> orders = new ArrayList<>();
-        String sql = "SELECT * FROM orders WHERE status = 'done'";
+        String sql = "SELECT * FROM orders WHERE DATE(created_at) = ?"; // Assuming your database supports this syntax
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setDate(1, Date.valueOf(date));
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Order order = new Order();
+                    order.setOrderId(rs.getString("order_id"));
+                    order.setUserId(rs.getString("user_id"));
+                    order.setTotalAmount(rs.getDouble("total_amount"));
+                    order.setStatus(rs.getString("status"));
+                    orders.add(order);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return orders;
+    }
+
+    @Override
+    public double getTotalIncome() {
+        String sql = "SELECT SUM(total_amount) as totalIncome FROM orders WHERE status = 'done'";
+        double totalIncome = 0.0;
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs.next()) {
+                totalIncome = rs.getDouble("totalIncome");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle exception appropriately
+        }
+
+        return totalIncome;
+    }
+
+    @Override
+    public int getTotalItemsSold() {
+        String sql = "SELECT SUM(quantity) as totalItemsSold FROM order_items oi " +
+                "JOIN orders o ON oi.order_id = o.order_id " +
+                "WHERE o.status = 'done'";
+        int totalItemsSold = 0;
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs.next()) {
+                totalItemsSold = rs.getInt("totalItemsSold");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle exception appropriately
+        }
+
+        return totalItemsSold;
+    }
+
+    @Override
+    public String getBestSeller() {
+        String sql = "SELECT product_name, SUM(quantity) as totalQuantity " +
+                "FROM order_items " +
+                "GROUP BY product_name " +
+                "ORDER BY totalQuantity DESC " +
+                "LIMIT 1";
+        String bestSeller = "Not available";
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs.next()) {
+                bestSeller = rs.getString("product_name");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle exception appropriately
+        }
+
+        return bestSeller;
+    }
+
+    @Override
+    public Map<LocalDate, Double> getDailySales() {
+        Map<LocalDate, Double> dailySales = new TreeMap<>();
+        String sql = "SELECT DATE(created_at) as date, SUM(total_amount) as daily_total " +
+                "FROM orders WHERE status = 'done' " +
+                "GROUP BY date " +
+                "ORDER BY date ASC";
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
 
             while (rs.next()) {
-                Order order = new Order();
-                order.setOrderId(rs.getString("order_id"));
-                order.setUserId(rs.getString("user_id"));
-                order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-                order.setTotalAmount(rs.getDouble("total_amount"));
+                LocalDate date = rs.getDate("date").toLocalDate();
+                Double dailyTotal = rs.getDouble("daily_total");
+                dailySales.put(date, dailyTotal);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle exception appropriately
+        }
 
-                orders.add(order);
+        return dailySales;
+    }
+
+    @Override
+    public Map<YearMonth, Double> getMonthlySales() {
+        String sql = "SELECT YEAR(created_at) AS year, MONTH(created_at) AS month, SUM(total_amount) AS total_sales " +
+                "FROM orders " +
+                "WHERE status = 'done' " +
+                "GROUP BY YEAR(created_at), MONTH(created_at)";
+        Map<YearMonth, Double> monthlySales = new HashMap<>();
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                int year = rs.getInt("year");
+                int month = rs.getInt("month");
+                double totalSales = rs.getDouble("total_sales");
+                YearMonth yearMonth = YearMonth.of(year, month);
+
+                monthlySales.put(yearMonth, totalSales);
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            // Consider more robust error handling, such as logging the error or throwing a custom exception
         }
-        return orders;
+
+        return monthlySales;
+    }
+
+    @Override
+    public Map<Integer, Double> getAnnualSales() {
+        String sql = "SELECT YEAR(created_at) AS year, SUM(total_amount) AS total_sales FROM orders WHERE status = 'done' GROUP BY YEAR(created_at)";
+        Map<Integer, Double> annualSales = new HashMap<>();
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                int year = rs.getInt("year");
+                double totalSales = rs.getDouble("total_sales");
+                annualSales.put(year, totalSales);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // Proper error handling should be done here
+        }
+
+        return annualSales;
     }
 
     public String generateNewOrderId() {
