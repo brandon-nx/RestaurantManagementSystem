@@ -9,6 +9,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 
+<?import javafx.scene.control.cell.PropertyValueFactory?>
 <BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.ReportController" prefHeight="600.0" prefWidth="910.0">
     <center>
         <SplitPane dividerPositions="0.2" orientation="VERTICAL">
@@ -74,21 +75,23 @@
 
                 <!-- Report Display Area -->
                 <HBox>
-                    <VBox spacing="10" HBox.hgrow="ALWAYS">
+                    <VBox spacing="10">
                         <TableView fx:id="reportTableView" VBox.vgrow="ALWAYS">
                             <columns>
-                                <TableColumn fx:id="dateColumn" text="Date" />
-                                <TableColumn fx:id="salesColumn" text="Total Sales" />
+                                <TableColumn fx:id="categoryColumn" text="Category" />
+                                <TableColumn fx:id="quantityColumn" text="Quantity Sold" />
+                                <TableColumn fx:id="salesColumn" text="Sales (RM)" />
                             </columns>
                         </TableView>
+
                     </VBox>
                     <VBox spacing="10" HBox.hgrow="ALWAYS">
-                        <BarChart fx:id="salesBarChart" VBox.vgrow="ALWAYS">
+                        <BarChart fx:id="salesBarChart" VBox.vgrow="ALWAYS" legendVisible="false">
                             <xAxis>
-                                <CategoryAxis fx:id="xAxis" label="Date"/>
+                                <CategoryAxis fx:id="xAxis" label="Category"/>
                             </xAxis>
                             <yAxis>
-                                <NumberAxis fx:id="yAxis" label="Sales ($)"/>
+                                <NumberAxis fx:id="yAxis" label="Sales (RM)"/>
                             </yAxis>
                         </BarChart>
                     </VBox>

@@ -2,11 +2,13 @@ package com.restaurantmanagementsystem.pos.db;
 
 import com.restaurantmanagementsystem.pos.model.Order;
 import com.restaurantmanagementsystem.pos.model.OrderItem;
+import com.restaurantmanagementsystem.pos.model.Report;
 
 import java.sql.*;
 import java.sql.Date;
 import java.time.LocalDate;
-import java.time.YearMonth;
+import java.time.Month;
+import java.time.format.TextStyle;
 import java.util.*;
 
 public class OrderDaoImpl implements OrderDao {
@@ -215,77 +217,163 @@ public class OrderDaoImpl implements OrderDao {
     }
 
     @Override
-    public Map<LocalDate, Double> getDailySales() {
-        Map<LocalDate, Double> dailySales = new TreeMap<>();
-        String sql = "SELECT DATE(created_at) as date, SUM(total_amount) as daily_total " +
-                "FROM orders WHERE status = 'done' " +
+    public List<Report> getDailySales(LocalDate date) {
+        List<Report> reportList = new ArrayList<>();
+        String sql = "SELECT category, COUNT(*) as quantity, SUM(total_amount) as sales " +
+                "FROM ( " +
+                "  SELECT *, " +
+                "    CASE " +
+                "      WHEN HOUR(created_at) BETWEEN 7 AND 11 THEN 'Breakfast' " +
+                "      WHEN HOUR(created_at) BETWEEN 12 AND 17 THEN 'Lunch' " +
+                "      WHEN HOUR(created_at) BETWEEN 18 AND 23 THEN 'Dinner' " +
+                "      WHEN HOUR(created_at) BETWEEN 0 AND 6 THEN 'Others' " +
+                "    END AS category " +
+                "  FROM orders " +
+                "  WHERE DATE(created_at) = ? AND status = 'done' " +
+                ") AS orders_grouped " +
+                "GROUP BY category " +
+                "ORDER BY FIELD(category, 'Breakfast', 'Lunch', 'Dinner', 'Others');";
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setDate(1, Date.valueOf(date));
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String category = rs.getString("category");
+                    int quantity = rs.getInt("quantity");
+                    double sales = rs.getDouble("sales");
+                    reportList.add(new Report(category, quantity, sales));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return reportList;
+    }
+
+    @Override
+    public List<Report> getWeeklySales(LocalDate startOfWeek, LocalDate endOfWeek) {
+        List<Report> weeklySales = new ArrayList<>();
+        String sql = "SELECT DATE(created_at) AS date, SUM(total_amount) AS sales, COUNT(*) AS quantity, " +
+                "DAYNAME(created_at) AS day_of_week " +
+                "FROM orders " +
+                "WHERE DATE(created_at) BETWEEN ? AND ? AND status = 'done' " +
+                "GROUP BY date, day_of_week " +
+                "ORDER BY date ASC";
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setDate(1, Date.valueOf(startOfWeek));
+            pstmt.setDate(2, Date.valueOf(endOfWeek));
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String dayOfWeek = rs.getString("day_of_week");
+                    double sales = rs.getDouble("sales");
+                    int quantity = rs.getInt("quantity");
+                    weeklySales.add(new Report(dayOfWeek, quantity, sales));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); // Log this exception
+        }
+
+        return weeklySales;
+    }
+
+    @Override
+    public List<Report> getMonthlySales(LocalDate startOfMonth, LocalDate endOfMonth) {
+        List<Report> monthlySales = new ArrayList<>();
+        String sql = "SELECT DATE(created_at) AS date, SUM(total_amount) AS sales, COUNT(*) AS quantity " +
+                "FROM orders " +
+                "WHERE DATE(created_at) BETWEEN ? AND ? AND status = 'done' " +
                 "GROUP BY date " +
                 "ORDER BY date ASC";
 
         try (Connection conn = DatabaseConnector.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                LocalDate date = rs.getDate("date").toLocalDate();
-                Double dailyTotal = rs.getDouble("daily_total");
-                dailySales.put(date, dailyTotal);
+            pstmt.setDate(1, Date.valueOf(startOfMonth));
+            pstmt.setDate(2, Date.valueOf(endOfMonth));
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    LocalDate date = rs.getDate("date").toLocalDate();
+                    double sales = rs.getDouble("sales");
+                    int quantity = rs.getInt("quantity");
+                    monthlySales.add(new Report(date.toString(), quantity, sales));
+                }
             }
         } catch (SQLException e) {
-            e.printStackTrace(); // Handle exception appropriately
-        }
-
-        return dailySales;
-    }
-
-    @Override
-    public Map<YearMonth, Double> getMonthlySales() {
-        String sql = "SELECT YEAR(created_at) AS year, MONTH(created_at) AS month, SUM(total_amount) AS total_sales " +
-                "FROM orders " +
-                "WHERE status = 'done' " +
-                "GROUP BY YEAR(created_at), MONTH(created_at)";
-        Map<YearMonth, Double> monthlySales = new HashMap<>();
-
-        try (Connection conn = DatabaseConnector.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-
-            while (rs.next()) {
-                int year = rs.getInt("year");
-                int month = rs.getInt("month");
-                double totalSales = rs.getDouble("total_sales");
-                YearMonth yearMonth = YearMonth.of(year, month);
-
-                monthlySales.put(yearMonth, totalSales);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            // Consider more robust error handling, such as logging the error or throwing a custom exception
+            e.printStackTrace(); // Log this exception
         }
 
         return monthlySales;
     }
 
     @Override
-    public Map<Integer, Double> getAnnualSales() {
-        String sql = "SELECT YEAR(created_at) AS year, SUM(total_amount) AS total_sales FROM orders WHERE status = 'done' GROUP BY YEAR(created_at)";
-        Map<Integer, Double> annualSales = new HashMap<>();
+    public List<Report> getAnnualSales(LocalDate startOfYear, LocalDate endOfYear) {
+        List<Report> annualSales = new ArrayList<>();
+        String sql = "SELECT MONTH(created_at) AS month, SUM(total_amount) AS sales, COUNT(*) AS quantity " +
+                "FROM orders " +
+                "WHERE DATE(created_at) BETWEEN ? AND ? AND status = 'done' " +
+                "GROUP BY month " +
+                "ORDER BY month ASC";
 
         try (Connection conn = DatabaseConnector.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            while (rs.next()) {
-                int year = rs.getInt("year");
-                double totalSales = rs.getDouble("total_sales");
-                annualSales.put(year, totalSales);
+            pstmt.setDate(1, Date.valueOf(startOfYear));
+            pstmt.setDate(2, Date.valueOf(endOfYear));
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    int month = rs.getInt("month");
+                    double sales = rs.getDouble("sales");
+                    int quantity = rs.getInt("quantity");
+                    String monthName = Month.of(month).getDisplayName(TextStyle.FULL, Locale.getDefault());
+                    annualSales.add(new Report(monthName, quantity, sales));
+                }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            // Proper error handling should be done here
+            e.printStackTrace(); // Log this exception
         }
 
         return annualSales;
+    }
+
+    @Override
+    public List<Report> getSalesByMenuItem() {
+        List<Report> menuItemSales = new ArrayList<>();
+        String sql = "SELECT mi.name, SUM(oi.quantity) as quantity, SUM(oi.quantity * oi.price) as total_sales " +
+                "FROM order_items oi " +
+                "JOIN menu_items mi ON oi.product_id = mi.product_id " +
+                "JOIN orders o ON oi.order_id = o.order_id " +
+                "WHERE o.status = 'done' " +
+                "GROUP BY mi.name " +
+                "ORDER BY total_sales DESC";
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String menuItemName = rs.getString("name");
+                    int quantity = rs.getInt("quantity");
+                    double sales = rs.getDouble("sales");
+
+                    menuItemSales.add(new Report(menuItemName, quantity, sales));
+                }
+            }
+        } catch (SQLException e) {
+            // Handle exceptions properly here
+            e.printStackTrace();
+        }
+
+        return menuItemSales;
     }
 
     public String generateNewOrderId() {

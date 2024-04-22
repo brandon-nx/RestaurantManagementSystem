@@ -2,8 +2,9 @@ package com.restaurantmanagementsystem.pos.controller;
 
 import com.restaurantmanagementsystem.pos.db.OrderDao;
 import com.restaurantmanagementsystem.pos.db.OrderDaoImpl;
-import com.restaurantmanagementsystem.pos.model.DailySalesReport;
 import com.restaurantmanagementsystem.pos.model.Order;
+import com.restaurantmanagementsystem.pos.model.Report;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -15,26 +16,29 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.YearMonth;
+import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
 
 public class ReportController {
-
     @FXML
     private Label todaysIncomeLabel, totalIncomeLabel, totalItemsSoldLabel, bestSellerLabel;
     @FXML
     private ComboBox<String> reportTypeComboBox;
     @FXML
-    private TableView<DailySalesReport> reportTableView;
+    private TableView<Report> reportTableView;
     @FXML
-    private TableColumn<DailySalesReport, LocalDate> dateColumn;
+    public TableColumn<Report, String> categoryColumn;
     @FXML
-    private TableColumn<DailySalesReport, Double> salesColumn;
+    public TableColumn<Report, Number> quantityColumn;
+    @FXML
+    public TableColumn<Report, Number> salesColumn;
+
+
     @FXML
     private BarChart<String, Number> salesBarChart;
     @FXML
@@ -49,18 +53,14 @@ public class ReportController {
     private SimpleStringProperty bestSeller = new SimpleStringProperty();
 
 
-
     @FXML
     public void initialize() {
-        bindDashboardProperties();
+        setupDashboardData();
         setupReportTypeComboBox();
-        setupReportTableView();
-        setupSalesBarChart();
+        setCellValueFactory();
+        updateReportViews("Daily Sales Report");
 
-        reportTypeComboBox.getSelectionModel().select("Daily Sales");
-        populateDailySalesReport();
-
-        // Listen for changes in ComboBox selection to update the view
+        reportTypeComboBox.getSelectionModel().select("Daily Sales Report");
         reportTypeComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 updateReportViews(newVal);
@@ -68,42 +68,28 @@ public class ReportController {
         });
     }
 
-    private void setupReportTableView() {
-        dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
-        salesColumn.setCellValueFactory(new PropertyValueFactory<>("totalSales"));
-        dateColumn.setCellFactory(column -> new TableCell<DailySalesReport, LocalDate>() {
-            @Override
-            protected void updateItem(LocalDate item, boolean empty) {
-                super.updateItem(item, empty);
-                if (item == null || empty) {
-                    setText(null);
-                } else {
-                    setText(item.format(DateTimeFormatter.ISO_LOCAL_DATE));
-                }
-            }
-        });
-    }
-
-    private void setupSalesBarChart() {
-        xAxis.setLabel("Date");
-        yAxis.setLabel("Total Sales");
-        yAxis.setTickLabelFormatter(new NumberAxis.DefaultFormatter(yAxis, "RM", null));
+    private void setCellValueFactory() {
+        categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
+        quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+        salesColumn.setCellValueFactory(new PropertyValueFactory<>("sales"));
     }
 
     private void setupReportTypeComboBox() {
-        reportTypeComboBox.getItems().addAll("Daily Sales", "Monthly Sales", "Annual Sales", "Sales by Category");
+        reportTypeComboBox.getItems().addAll(
+                "Daily Sales Report",
+                "Weekly Sales Report",
+                "Monthly Sales Report",
+                "Annual Sales Report",
+                "Sales by Menu Item",
+                "Sales by Category");
     }
 
-    private void bindDashboardProperties() {
+    private void setupDashboardData() {
         todaysIncomeLabel.textProperty().bind(todaysIncome);
         totalIncomeLabel.textProperty().bind(totalIncome);
         totalItemsSoldLabel.textProperty().bind(totalItemsSold);
         bestSellerLabel.textProperty().bind(bestSeller);
 
-        loadDashboardData();
-    }
-
-    private void loadDashboardData() {
         calculateTodaysIncome();
         calculateTotalIncome();
         calculateTotalItemsSold();
@@ -138,23 +124,27 @@ public class ReportController {
     }
 
     private void updateReportViews(String reportType) {
-        // Clear existing data from TableView and BarChart
         reportTableView.getItems().clear();
         salesBarChart.getData().clear();
 
-        // Based on the report type, call a method to update the TableView and BarChart
         switch (reportType) {
-            case "Daily Sales":
+            case "Daily Sales Report":
                 populateDailySalesReport();
                 break;
-            case "Monthly Sales":
+            case "Weekly Sales Report":
+                populateWeeklySalesReport();
+                break;
+            case "Monthly Sales Report":
                 populateMonthlySalesReport();
                 break;
-            case "Annual Sales":
+            case "Annual Sales Report":
                 populateAnnualSalesReport();
                 break;
+            case "Sales by Menu Item":
+                populateSalesByMenuItemReport();
+                break;
             case "Sales by Category":
-                // populateSalesByCategoryReport();
+                populateSalesByCategoryReport();
                 break;
             default:
                 System.out.println("Unknown report type: " + reportType);
@@ -162,51 +152,166 @@ public class ReportController {
         }
     }
 
+    private void updateSalesBarChart(Collection<Report> salesData) {
+        XYChart.Series<String, Number> salesSeries = new XYChart.Series<>();
+
+        for (Report sale : salesData) {
+            salesSeries.getData().add(new XYChart.Data<>(sale.getCategory(), sale.getSales()));
+        }
+
+        salesBarChart.getData().setAll(salesSeries);
+    }
+
+    // Daily Sales Report
     private void populateDailySalesReport() {
-        Map<LocalDate, Double> salesData = orderDao.getDailySales();
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Daily Sales");
-        ObservableList<DailySalesReport> tableData = FXCollections.observableArrayList();
+        LocalDate today = LocalDate.of(2024, 4, 19);
+        List<Report> todayReport = orderDao.getDailySales(today);
 
-        salesData.forEach((date, salesAmount) -> {
-            series.getData().add(new XYChart.Data<>(date.format(DateTimeFormatter.ISO_LOCAL_DATE), salesAmount));
-            tableData.add(new DailySalesReport(date, salesAmount));
-        });
+        Map<String, Report> completeTodayReport = getCompleteSalesData(todayReport);
 
-        salesBarChart.getData().add(series);
-        reportTableView.setItems(tableData);
+        reportTableView.setItems(FXCollections.observableArrayList(completeTodayReport.values()));
+        updateSalesBarChart(completeTodayReport.values());
+    }
+
+    private Map<String, Report> getCompleteSalesData(List<Report> salesData) {
+        String[] mealTimes = {"Breakfast", "Lunch", "Dinner", "Others"};
+
+        Map<String, Report> completeData = new LinkedHashMap<>();
+        for (String mealTime : mealTimes) {
+            completeData.put(mealTime, new Report(mealTime, 0, 0.0));
+        }
+
+        for (Report sale : salesData) {
+            Report existingData = completeData.get(sale.getCategory());
+            existingData.incrementQuantity(sale.getQuantity());
+            existingData.addToSales(sale.getSales());
+        }
+
+        return completeData;
+    }
+
+    private void populateWeeklySalesReport() {
+        LocalDate today = LocalDate.of(2024, 4, 15);
+        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+
+        List<Report> weeklySalesData = orderDao.getWeeklySales(startOfWeek, endOfWeek);
+        Map<String, Report> completeWeeklyData = initializeWeeklyData(startOfWeek);
+
+        for (Report dailySale : weeklySalesData) {
+           if (completeWeeklyData.containsKey(dailySale.getCategory())) {
+                Report report = completeWeeklyData.get(dailySale.getCategory());
+                report.setQuantity(dailySale.getQuantity());
+                report.setSales(dailySale.getSales());
+           }
+        }
+
+        reportTableView.setItems(FXCollections.observableArrayList(completeWeeklyData.values()));
+        updateSalesBarChart(completeWeeklyData.values());
+    }
+
+    private Map<String, Report> initializeWeeklyData(LocalDate startOfWeek) {
+        Map<String, Report> map = new LinkedHashMap<>();
+        LocalDate date = startOfWeek;
+        for (int i = 0; i < 7; i++) {
+            String dayName = date.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.getDefault());
+            map.put(dayName, new Report(dayName, 0, 0.0));
+            date = date.plusDays(1);
+        }
+        return map;
     }
 
     private void populateMonthlySalesReport() {
-        Map<YearMonth, Double> salesData = orderDao.getMonthlySales();
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Monthly Sales");
-        ObservableList<DailySalesReport> tableData = FXCollections.observableArrayList();
+        LocalDate startOfMonth = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endOfMonth = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
 
-        salesData.forEach((month, salesAmount) -> {
-            String monthAsString = month.getMonth().getDisplayName(TextStyle.FULL, Locale.getDefault()) + " " + month.getYear();
-            series.getData().add(new XYChart.Data<>(monthAsString, salesAmount));
-            tableData.add(new DailySalesReport(month.atDay(1), salesAmount));  // using the first day of the month for date
-        });
+        List<Report> monthlySalesData = orderDao.getMonthlySales(startOfMonth, endOfMonth);
+        Map<String, Report> completeMonthlyData = initializeMonthlyData(startOfMonth);
 
-        salesBarChart.getData().add(series);
-        reportTableView.setItems(tableData);
+        for (Report dailySale : monthlySalesData) {
+            if (completeMonthlyData.containsKey(dailySale.getCategory())) {
+                Report report = completeMonthlyData.get(dailySale.getCategory());
+                report.setQuantity(dailySale.getQuantity());
+                report.setSales(dailySale.getSales());
+            }
+        }
+
+        // Update the table view and bar chart for the monthly report
+        reportTableView.setItems(FXCollections.observableArrayList(completeMonthlyData.values()));
+        updateSalesBarChart(completeMonthlyData.values());
+    }
+
+    private Map<String, Report> initializeMonthlyData(LocalDate startOfMonth) {
+        Map<String, Report> map = new LinkedHashMap<>();
+        LocalDate date = startOfMonth;
+        while (!date.isAfter(startOfMonth.with(TemporalAdjusters.lastDayOfMonth()))) {
+            String dayName = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            map.put(dayName, new Report(dayName, 0, 0.0));
+            date = date.plusDays(1);
+        }
+        return map;
     }
 
     private void populateAnnualSalesReport() {
-        Map<Integer, Double> salesData = orderDao.getAnnualSales();
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Annual Sales");
-        ObservableList<DailySalesReport> tableData = FXCollections.observableArrayList();
+        LocalDate startOfYear = LocalDate.now().with(TemporalAdjusters.firstDayOfYear());
+        LocalDate endOfYear = LocalDate.now().with(TemporalAdjusters.lastDayOfYear());
 
-        salesData.forEach((year, totalSales) -> {
-            series.getData().add(new XYChart.Data<>(String.valueOf(year), totalSales));
-            tableData.add(new DailySalesReport(LocalDate.of(year, 1, 1), totalSales));  // Adjust if using a different model for yearly data
-        });
+        List<Report> annualSalesData = orderDao.getAnnualSales(startOfYear, endOfYear);
+        Map<String, Report> completeAnnualData = initializeAnnualData();
 
-        salesBarChart.getData().add(series);
-        reportTableView.setItems(tableData);
+        for (Report monthlySale : annualSalesData) {
+            if (completeAnnualData.containsKey(monthlySale.getCategory())) {
+                Report report = completeAnnualData.get(monthlySale.getCategory());
+                report.setQuantity(monthlySale.getQuantity());
+                report.setSales(monthlySale.getSales());
+            }
+        }
+
+        reportTableView.setItems(FXCollections.observableArrayList(completeAnnualData.values()));
+        updateSalesBarChart(completeAnnualData.values());
     }
 
+    private Map<String, Report> initializeAnnualData() {
+        Map<String, Report> map = new LinkedHashMap<>();
+        for (int i = 1; i <= 12; i++) {
+            String monthName = Month.of(i).getDisplayName(TextStyle.FULL, Locale.getDefault());
+            map.put(monthName, new Report(monthName, 0, 0.0));
+        }
+        return map;
+    }
+
+    private void populateSalesByMenuItemReport() {
+        // Fetch the sales data for each menu item
+        List<Report> menuItemSalesData = orderDao.getSalesByMenuItem();
+
+        // Clear existing data in the UI components
+        reportTableView.getItems().clear();
+        salesBarChart.getData().clear();
+
+        // Prepare a new series for the BarChart
+        XYChart.Series<String, Number> salesSeries = new XYChart.Series<>();
+        salesSeries.setName("Menu Item Sales");
+
+        // Populate the table and the chart with new data
+        for (Report report : menuItemSalesData) {
+            // Add data to the TableView
+            reportTableView.getItems().add(report);
+
+            // Create a new chart data point for each menu item and add it to the series
+            XYChart.Data<String, Number> chartData = new XYChart.Data<>(report.getCategory(), report.getSales());
+            salesSeries.getData().add(chartData);
+        }
+
+        // Add the series to the BarChart
+        salesBarChart.getData().add(salesSeries);
+
+        // Update layout to reflect new data
+        Platform.runLater(() -> salesBarChart.layout());
+    }
+
+
+    private void populateSalesByCategoryReport() {
+        // TODO: Populate the report for sales by category
+    }
 }
 

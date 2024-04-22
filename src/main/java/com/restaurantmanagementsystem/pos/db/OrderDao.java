@@ -2,6 +2,7 @@ package com.restaurantmanagementsystem.pos.db;
 
 import com.restaurantmanagementsystem.pos.model.Order;
 import com.restaurantmanagementsystem.pos.model.OrderItem;
+import com.restaurantmanagementsystem.pos.model.Report;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -17,16 +18,14 @@ public interface OrderDao {
     List<Order> getAllOrders();
     List<Order> getOrdersByDate(LocalDate date);
     double getTotalIncome();
-
     int getTotalItemsSold();
-
     String getBestSeller();
+    List<Report> getDailySales(LocalDate date);
+    List<Report> getWeeklySales(LocalDate startOfWeek, LocalDate endOfWeek);
+    List<Report> getMonthlySales(LocalDate startOfMonth, LocalDate endOfMonth);
+    List<Report> getAnnualSales(LocalDate startOfYear, LocalDate endOfYear);
+    List<Report> getSalesByMenuItem();
 
-    Map<LocalDate, Double> getDailySales();
-
-    Map<YearMonth, Double> getMonthlySales();
-
-    Map<Integer, Double> getAnnualSales();
 
     String generateNewOrderId();
 }
