@@ -9,20 +9,20 @@ public class RegisterDaoImpl implements RegisterDao {
 
     @Override
     public boolean registerCustomer(String username, String password, String contact, String address) {
-        String insertCustomerQuery = "INSERT INTO users (user_id, username, password, role, contact, address) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (user_id, username, password, role, contact, address) VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnector.getConnection()) {
-            // Start transaction
-            conn.setAutoCommit(false);
 
-            String newUserId = generateNewUserId(conn); // You would implement this method to generate a new ID.
+            conn.setAutoCommit(false);
+            String newUserId = generateNewUserId(conn);
 
             if (newUserId == null || checkUsernameExists(username)) {
-                conn.rollback(); // rollback if ID cannot be generated or username exists
+                conn.rollback();
                 return false;
             }
 
-            try (PreparedStatement pstmt = conn.prepareStatement(insertCustomerQuery)) {
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
                 pstmt.setString(1, newUserId);
                 pstmt.setString(2, username);
                 pstmt.setString(3, password);
@@ -38,33 +38,40 @@ public class RegisterDaoImpl implements RegisterDao {
 
                 conn.commit();
                 return true;
-            } catch (SQLException ex) {
+
+            } catch (SQLException e) {
                 conn.rollback();
-                throw ex;
+                System.err.println("Error occurred during customer registration: " + e.getMessage());
+                return false;
             }
-        } catch (SQLException ex) {
-            // handle exception
+
+        } catch (SQLException e) {
+            System.err.println("Authentication failed: " + e.getMessage());
             return false;
         }
     }
 
+
     @Override
     public boolean checkUsernameExists(String username) {
-        String query = "SELECT 1 FROM users WHERE username = ?";
+        String sql = "SELECT 1 FROM users WHERE username = ?";
         try (Connection conn = DatabaseConnector.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, username);
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next();
             }
-        } catch (SQLException ex) {
+
+        } catch (SQLException e) {
+            System.err.println("Error occurred while checking username existence: " + e.getMessage());
             return true;
         }
     }
 
     private String generateNewUserId(Connection conn) throws SQLException {
-        String lastIdQuery = "SELECT user_id FROM users ORDER BY created_at DESC LIMIT 1";
-        try (PreparedStatement pstmt = conn.prepareStatement(lastIdQuery);
+        String sql = "SELECT user_id FROM users ORDER BY created_at DESC LIMIT 1";
+        try (PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
 
             if (rs.next()) {
@@ -72,11 +79,8 @@ public class RegisterDaoImpl implements RegisterDao {
                 int idNumber = Integer.parseInt(lastId.substring(2)) + 1;
                 return String.format("U-%03d", idNumber);
             } else {
-                return "U-001"; // first user ID if no existing user
+                return "U-001";
             }
-        } catch (SQLException ex) {
-            // handle exception
-            throw ex;
         }
     }
 }

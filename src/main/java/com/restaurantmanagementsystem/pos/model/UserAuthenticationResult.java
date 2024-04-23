@@ -2,21 +2,25 @@ package com.restaurantmanagementsystem.pos.model;
 
 public class UserAuthenticationResult {
     private boolean authenticated;
-    private String userRole;
+    private String username;
     private String userId;
+    private String userRole;
 
-    public UserAuthenticationResult(boolean authenticated, String userRole, String userId) {
+    // Constructor
+    public UserAuthenticationResult(boolean authenticated, String username, String userId, String userRole) {
         this.authenticated = authenticated;
-        this.userRole = userRole;
+        this.username = username;
         this.userId = userId;
+        this.userRole = userRole;
     }
 
-    public boolean isAuthenticated() {
-        return authenticated;
+    // Getters and Setters
+    public String getUsername() {
+        return username;
     }
 
-    public String getUserRole() {
-        return userRole;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getUserId() {
@@ -25,5 +29,21 @@ public class UserAuthenticationResult {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getUserRole() {
+        return userRole;
+    }
+
+    public void setUserRole(String userRole) {
+        this.userRole = userRole;
+    }
+
+    public void setAuthenticated(boolean authenticated) {
+        this.authenticated = authenticated;
+    }
+
+    public boolean isAuthenticated() {
+        return authenticated;
     }
 }

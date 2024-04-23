@@ -5,12 +5,42 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d2595f03-9e07-430b-8b1d-85c3cef8c02b" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/Report.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/AlertUtils.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/MainApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/MainApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/AdminController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/AdminController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/CustomerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/CustomerController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/LoginController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/LoginController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/RegisterController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/RegisterController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/ReportController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/controller/ReportController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/DatabaseConnector.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/DatabaseConnector.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/LoginDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/LoginDao.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/LoginDaoImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/LoginDaoImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDaoImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/MenuDaoImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/OrderDao.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/OrderDao.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/OrderDaoImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/OrderDaoImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/DailySalesReport.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/RegisterDaoImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/db/RegisterDaoImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/Admin.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/Cart.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/CartItem.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/Customer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/FoodOrderingSystem.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/IItemOperations.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/IManageData.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/MenuItem.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/Order.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/Restaurant.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/extra/SpecialOffer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/MenuItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/MenuItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/OrderItem.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/OrderItem.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/Report.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/Report.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/UserAuthenticationResult.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/restaurantmanagementsystem/pos/model/UserAuthenticationResult.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/admin.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/admin.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/customer.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/customer.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/login.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/login.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/register.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/register.fxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/report.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/restaurantmanagementsystem/pos/view/report.fxml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -120,6 +150,10 @@
       <workItem from="1713519683040" duration="27279000" />
       <workItem from="1713663220555" duration="4554000" />
       <workItem from="1713758241667" duration="28061000" />
+      <workItem from="1713835389525" duration="825000" />
+      <workItem from="1713836367070" duration="28000" />
+      <workItem from="1713837811498" duration="28859000" />
+      <workItem from="1713882035090" duration="1539000" />
     </task>
     <servers />
   </component>

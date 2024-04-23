@@ -4,10 +4,9 @@ import com.restaurantmanagementsystem.pos.db.MenuDao;
 import com.restaurantmanagementsystem.pos.db.MenuDaoImpl;
 import com.restaurantmanagementsystem.pos.db.OrderDao;
 import com.restaurantmanagementsystem.pos.db.OrderDaoImpl;
-import com.restaurantmanagementsystem.pos.model.Order;
-import com.restaurantmanagementsystem.pos.model.OrderItem;
+import com.restaurantmanagementsystem.pos.model.*;
+
 import com.restaurantmanagementsystem.pos.model.MenuItem;
-import com.restaurantmanagementsystem.pos.model.User;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -29,7 +28,6 @@ import javafx.util.Callback;
 
 import java.io.IOException;
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -139,7 +137,7 @@ public class CustomerController {
         Button addButton = new Button("Add");
         addButton.setId("addButton");
         addButton.setOnAction(this::handleAddItemAction);
-        addButton.setUserData(new OrderItem(menuItem.getName(), menuItem.getProductId(), 1, menuItem.getPrice()));
+        addButton.setUserData(new OrderItem(menuItem.getProductId(), menuItem.getName(), 1, menuItem.getPrice()));
 
         if (menuItem.getStock() <= 0) {
             addButton.setDisable(true);
@@ -183,7 +181,7 @@ public class CustomerController {
     // Sign Out Button
     @FXML
     private void handleSignOutAction() {
-        if (showConfirmationDialog("Sign Out", "Are you sure you want to sign out?")) {
+        if (AlertUtils.showConfirmationAlert("Sign Out", "Are you sure you want to sign out?")) {
            try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/login.fxml")); // Correct the path if necessary.
                 Parent loginView = loader.load();
@@ -203,15 +201,16 @@ public class CustomerController {
     private void handleAddItemAction(ActionEvent event) {
         Button addButton = (Button) event.getSource();
         MenuItem menuItem = menuDao.getMenuItemsByName(((OrderItem) addButton.getUserData()).getProductName());
+
         if (menuItem != null) {
             if (menuItem.getStock() > 0) {
-                OrderItem orderItem = new OrderItem(menuItem.getName(), menuItem.getProductId(), 1, menuItem.getPrice());
+                OrderItem orderItem = new OrderItem(menuItem.getProductId(), menuItem.getName(), 1, menuItem.getPrice());
                 addOrUpdateOrderItem(orderItem, menuItem);
             } else {
-                showErrorAlert("Out of Stock", "The selected item is out of stock.");
+                AlertUtils.showErrorAlert("Out of Stock", "The selected item is out of stock.");
             }
         } else {
-            showErrorAlert("Item Not Found", "Could not find the items in the menu.");
+            AlertUtils.showErrorAlert("Item Not Found", "Could not find the items in the menu.");
         }
     }
 
@@ -226,14 +225,14 @@ public class CustomerController {
             if (existingItem.getQuantity() + 1 <= menuItem.getStock()) {
                 existingItem.setQuantity(existingItem.getQuantity() + 1);
             } else {
-                showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
+                AlertUtils.showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
                 return;
             }
         } else {
             if (menuItem.getStock() > 0) {
-                orderItems.add(new OrderItem(menuItem.getName(), menuItem.getProductId(), 1, menuItem.getPrice()));
+                orderItems.add(new OrderItem(menuItem.getProductId(), menuItem.getName(), 1, menuItem.getPrice()));
             } else {
-                showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
+                AlertUtils.showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
                 return;
             }
         }
@@ -276,12 +275,12 @@ public class CustomerController {
     // Clear Order Button
     @FXML
     private void handleClearOrderAction() {
-        if (!orderItems.isEmpty() && showConfirmationDialog("Clear Order", "Clear the entire order?")) {
+        if (!orderItems.isEmpty() && AlertUtils.showConfirmationAlert("Clear Order", "Clear the entire order?")) {
             orderItems.clear();
             orderDetailsTable.refresh();
             totalText.setText(String.format("Total: RM%.2f", calculateSubtotal()));
         } else if (orderItems.isEmpty()) {
-            showErrorAlert("Empty Order", "No items in the order. Please add food to your order before confirming.");
+            AlertUtils.showErrorAlert("Empty Order", "No items in the order.");
         }
     }
 
@@ -289,11 +288,11 @@ public class CustomerController {
     @FXML
     private void handleConfirmOrderAction() {
         if (orderItems.isEmpty()) {
-            showErrorAlert("Empty Order", "No items in the order.");
+            AlertUtils.showConfirmationAlert("Empty Order", "No items in the order.");
             return;
         }
 
-        if (!showConfirmationDialog("Confirm Order", "Do you want to confirm the order?")) {
+        if (!AlertUtils.showConfirmationAlert("Confirm Order", "Do you want to confirm the order?")) {
             return;
         }
 
@@ -314,7 +313,7 @@ public class CustomerController {
         for (OrderItem orderItem : orderItems) {
             MenuItem menuItem = menuDao.getMenuItemsByName(orderItem.getProductName());
             if (menuItem != null && menuItem.getStock() < orderItem.getQuantity()) {
-                showErrorAlert("Stock Error", "Not enough stock for " + orderItem.getProductName());
+                AlertUtils.showErrorAlert("Stock Error", "Not enough stock for " + orderItem.getProductName());
                 return false;
             }
         }
@@ -350,7 +349,7 @@ public class CustomerController {
         allConfirmedOrders.addAll(orderItems);
 
         // Show order confirmed
-        showInformationAlert("Order Confirmed", "Order has been confirmed!");
+        AlertUtils.showInformationAlert("Order Confirmed", "Order has been confirmed!");
     }
 
     private double calculateSubtotal() {
@@ -432,29 +431,5 @@ public class CustomerController {
             e.printStackTrace();
             // Handle exception
         }
-    }
-
-    private void showErrorAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private void showInformationAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private boolean showConfirmationDialog(String title, String content) {
-        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION, content);
-        confirmAlert.setTitle(title);
-        confirmAlert.setHeaderText(null);
-        Optional<ButtonType> result = confirmAlert.showAndWait();
-        return result.isPresent() && result.get() == ButtonType.OK;
     }
 }

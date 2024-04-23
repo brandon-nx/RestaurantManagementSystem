@@ -14,6 +14,8 @@ public class DatabaseConnector {
         return DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
     }
 
+    // Check if database is successfully connected
+
 //    public static void main(String[] args) {
 //        Connection connection = null;
 //        try {

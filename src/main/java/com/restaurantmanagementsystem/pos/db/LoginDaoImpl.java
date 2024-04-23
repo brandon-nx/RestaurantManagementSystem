@@ -10,24 +10,25 @@ import java.sql.SQLException;
 public class LoginDaoImpl implements LoginDao {
 
     public UserAuthenticationResult authenticate(String username, String password) {
-        String loginQuery = "SELECT user_id, role FROM users WHERE username = ? AND password = ?";
+        String sql = "SELECT user_id, username, role FROM users WHERE username = ? AND password = ?";
 
         try (Connection conn = DatabaseConnector.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(loginQuery)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, username);
             pstmt.setString(2, password);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    String userId = rs.getString("user_id"); // Use getString instead of getInt
+                    String userId = rs.getString("user_id");
+                    String retrievedUsername = rs.getString("username");
                     String role = rs.getString("role");
-                    return new UserAuthenticationResult(true, role, userId);
+
+                    return new UserAuthenticationResult(true, retrievedUsername, userId, role);
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Authentication failed: " + e.getMessage());
         }
-        return new UserAuthenticationResult(false, null, null);
+        return new UserAuthenticationResult(false, null, null, null);
     }
-
 }

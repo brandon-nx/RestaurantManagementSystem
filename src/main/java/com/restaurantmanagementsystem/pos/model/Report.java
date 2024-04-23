@@ -1,19 +1,16 @@
 package com.restaurantmanagementsystem.pos.model;
 
-import java.time.LocalDate;
-
 public class Report {
     private String category;
     private int quantity;
     private double sales;
 
-    // Constructor for daily reports
+    // Constructor
     public Report(String category, int quantity, double sales) {
         this.category = category;
         this.quantity = quantity;
         this.sales = sales;
     }
-
 
     // Getters and setters
     public String getCategory() {

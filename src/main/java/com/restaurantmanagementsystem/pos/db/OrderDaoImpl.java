@@ -348,13 +348,13 @@ public class OrderDaoImpl implements OrderDao {
     @Override
     public List<Report> getSalesByMenuItem() {
         List<Report> menuItemSales = new ArrayList<>();
-        String sql = "SELECT mi.name, SUM(oi.quantity) as quantity, SUM(oi.quantity * oi.price) as total_sales " +
+        String sql = "SELECT mi.name, SUM(oi.quantity) as quantity, SUM(oi.quantity * oi.price) as sales " +
                 "FROM order_items oi " +
                 "JOIN menu_items mi ON oi.product_id = mi.product_id " +
                 "JOIN orders o ON oi.order_id = o.order_id " +
                 "WHERE o.status = 'done' " +
                 "GROUP BY mi.name " +
-                "ORDER BY total_sales DESC";
+                "ORDER BY sales DESC";
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -376,6 +376,37 @@ public class OrderDaoImpl implements OrderDao {
         return menuItemSales;
     }
 
+    @Override
+    public List<Report> getSalesByCategory() {
+        List<Report> categorySales = new ArrayList<>();
+        String sql = "SELECT mi.category, SUM(oi.quantity) AS quantity, SUM(oi.quantity * oi.price) AS sales " +
+                "FROM order_items oi " +
+                "JOIN menu_items mi ON oi.product_id = mi.product_id " +
+                "JOIN orders o ON oi.order_id = o.order_id " +
+                "WHERE o.status = 'done' " +
+                "GROUP BY mi.category " +
+                "ORDER BY sales DESC";
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    String category = rs.getString("category");
+                    int quantity = rs.getInt("quantity");
+                    double sales = rs.getDouble("sales");
+
+                    categorySales.add(new Report(category, quantity, sales));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error occurred while fetching sales by category: " + e.getMessage());
+        }
+
+        return categorySales;
+    }
+
+
     public String generateNewOrderId() {
         String lastIdQuery = "SELECT order_id FROM orders ORDER BY order_id DESC LIMIT 1";
         try (Connection conn = DatabaseConnector.getConnection();
@@ -384,14 +415,14 @@ public class OrderDaoImpl implements OrderDao {
 
             if (rs.next()) {
                 String lastId = rs.getString("order_id");
-                int numericPart = Integer.parseInt(lastId.substring(2)) + 1; // Assuming the ID format is "O-XXX"
+                int numericPart = Integer.parseInt(lastId.substring(2)) + 1;
                 return String.format("O-%03d", numericPart);
             } else {
-                return "O-001"; // First ID if no existing records
+                return "O-001";
             }
         } catch (SQLException ex) {
             ex.printStackTrace();
-            return null; // Proper error handling should be implemented
+            return null;
         }
     }
 

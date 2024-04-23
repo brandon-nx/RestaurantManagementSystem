@@ -27,5 +27,7 @@ public interface OrderDao {
     List<Report> getSalesByMenuItem();
 
 
+    List<Report> getSalesByCategory();
+
     String generateNewOrderId();
 }

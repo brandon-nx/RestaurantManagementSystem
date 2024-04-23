@@ -76,7 +76,7 @@ public class MenuItem {
         this.status = status;
     }
 
-
+    // toString method for debugging purposes
     @Override
     public String toString() {
         return "MenuItem{" +

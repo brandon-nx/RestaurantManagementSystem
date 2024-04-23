@@ -17,6 +17,5 @@
         <PasswordField fx:id="passwordField" promptText="Password" maxWidth="200.0"/>
         <Button text="Login" onAction="#handleLoginButtonAction" style="-fx-background-color: green; -fx-text-fill: white;" maxWidth="200.0"/>
         <Hyperlink fx:id="createAccountLink" text="Create Account" onAction="#handleSwitchToRegister" />
-        <Text fx:id="loginMessageLabel"/>
     </VBox>
 </AnchorPane>

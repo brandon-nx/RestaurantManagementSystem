@@ -9,7 +9,6 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 
-<?import javafx.scene.control.cell.PropertyValueFactory?>
 <BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.ReportController" prefHeight="600.0" prefWidth="910.0">
     <center>
         <SplitPane dividerPositions="0.2" orientation="VERTICAL">
@@ -55,13 +54,12 @@
                 </VBox>
             </HBox>
 
-            <!-- Report Selection and Display Area -->
             <VBox spacing="10">
                 <padding>
                     <Insets top="10" right="10" bottom="10" left="10"/>
                 </padding>
 
-                <!-- Report Selection -->
+                <!-- Report Selection and Date Picker-->
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Label text="Report Type:" style="-fx-font-weight: bold;" />
                     <ComboBox fx:id="reportTypeComboBox" prefWidth="200">
@@ -71,9 +69,10 @@
                             </FXCollections>
                         </items>
                     </ComboBox>
+                    <DatePicker fx:id="datePicker" promptText="Select Date"/>
                 </HBox>
 
-                <!-- Report Display Area -->
+                <!-- Report Table and Chart Display Area -->
                 <HBox>
                     <VBox spacing="10">
                         <TableView fx:id="reportTableView" VBox.vgrow="ALWAYS">

@@ -14,10 +14,10 @@
                 </ImageView>
                 <Text fill="WHITE" style="-fx-font-size: 20;-fx-background-color: transparent; -fx-text-fill: white;" text="Big Bite Restaurant" />
                 <Text fx:id="welcomeText" fill="WHITE" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Welcome, Admin111" />
-                <Button fx:id="reportButton" minWidth="150" onAction="#handleReportAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Report" />
-                <Button fx:id="inventoryButton" minWidth="150" onAction="#handleInventoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Inventory" />
-                <Button fx:id="viewOrdersButton" minWidth="150" onAction="#handleViewOrdersAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="View Orders" />
-                <Button fx:id="signOutButton" minWidth="150" onAction="#handleSignOutAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Sign Out" />
+                <Button minWidth="150" onAction="#handleReportAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Report" />
+                <Button minWidth="150" onAction="#handleInventoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Inventory" />
+                <Button minWidth="150" onAction="#handleViewOrdersAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="View Orders" />
+                <Button minWidth="150" onAction="#handleSignOutAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Sign Out" />
             </VBox>
         </left>
     </BorderPane>

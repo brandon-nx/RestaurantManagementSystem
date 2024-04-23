@@ -37,10 +37,10 @@ public class MenuDaoImpl implements MenuDao {
     public List<MenuItem> getMenuItemsByCategory(String category) {
         List<MenuItem> menuItems = new ArrayList<>();
         String sql = "SELECT * FROM menu_items WHERE category = ?";
-        //System.out.println("Querying category: " + category);
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, category);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -64,10 +64,10 @@ public class MenuDaoImpl implements MenuDao {
         String sql = "SELECT * FROM menu_items WHERE name = ?";
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
             pstmt.setString(1, name);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    // Read the item properties from the ResultSet and return a new MenuItem
                     String productId = rs.getString("product_id");
                     String itemName = rs.getString("name");
                     double price = rs.getDouble("price");
@@ -79,6 +79,7 @@ public class MenuDaoImpl implements MenuDao {
                     return new MenuItem(productId, itemName, price, imagePath, category, stock, status);
                 }
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
             // Proper exception handling goes here

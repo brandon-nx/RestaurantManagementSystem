@@ -4,8 +4,6 @@
 <?import javafx.scene.text.*?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.collections.FXCollections?>
-<?import java.lang.String?>
 
 <AnchorPane prefHeight="500.0" prefWidth="400.0" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.restaurantmanagementsystem.pos.controller.RegisterController" style="-fx-background-color: white;">
     <VBox alignment="CENTER" spacing="15" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="50.0">
@@ -20,7 +18,6 @@
         <PasswordField fx:id="confirmPasswordField" promptText="Confirm Password" maxWidth="250.0"/>
         <TextField fx:id="contactField" promptText="Contact Number" maxWidth="250.0"/>
         <TextField fx:id="addressField" promptText="Address" maxWidth="250.0"/>
-        <Text fx:id="registrationMessageLabel" />
         <Button text="Sign Up" onAction="#handleRegisterButtonAction" maxWidth="250.0" style="-fx-background-color: #5cb85c; -fx-text-fill: white;"/>
         <HBox alignment="CENTER">
             <Text text="Already have an Account?" />

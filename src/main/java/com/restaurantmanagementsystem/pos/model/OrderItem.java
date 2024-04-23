@@ -8,19 +8,19 @@ public class OrderItem {
     private int quantity;
     private double price;
 
-    // Constructors
+    // Default constructor
     public OrderItem() {
     }
 
-    public OrderItem(String productName, String productId, int quantity, double price) {
-        this.productName = productName;
-        this.productId = productId;
-        this.quantity = quantity;
-        this.price = price;
+    // Constructor
+    public OrderItem(String productId, String productName, int quantity, double price) {
         this.orderItemId = null;
         this.orderId = null;
+        this.productId = productId;
+        this.productName = productName;
+        this.quantity = quantity;
+        this.price = price;
     }
-
 
     // Getters and setters
     public String getOrderItemId() {
@@ -71,7 +71,7 @@ public class OrderItem {
         this.price = price;
     }
 
-    // ToString method
+    // toString method for debugging purposes
     @Override
     public String toString() {
         return "OrderItem{" +

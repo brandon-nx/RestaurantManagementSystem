@@ -4,10 +4,10 @@ import com.restaurantmanagementsystem.pos.db.OrderDao;
 import com.restaurantmanagementsystem.pos.db.OrderDaoImpl;
 import com.restaurantmanagementsystem.pos.model.Order;
 import com.restaurantmanagementsystem.pos.model.Report;
+
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
@@ -22,53 +22,58 @@ import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.time.temporal.TemporalAdjusters;
+
 import java.util.*;
 
 public class ReportController {
     @FXML
     private Label todaysIncomeLabel, totalIncomeLabel, totalItemsSoldLabel, bestSellerLabel;
     @FXML
+    public DatePicker datePicker;
+    @FXML
     private ComboBox<String> reportTypeComboBox;
     @FXML
     private TableView<Report> reportTableView;
     @FXML
-    public TableColumn<Report, String> categoryColumn;
+    private TableColumn<Report, String> categoryColumn;
     @FXML
-    public TableColumn<Report, Number> quantityColumn;
+    private TableColumn<Report, Number> quantityColumn;
     @FXML
-    public TableColumn<Report, Number> salesColumn;
-
-
+    private TableColumn<Report, Number> salesColumn;
     @FXML
     private BarChart<String, Number> salesBarChart;
-    @FXML
-    private CategoryAxis xAxis;
-    @FXML
-    private NumberAxis yAxis;
 
-    private OrderDao orderDao = new OrderDaoImpl();
-    private SimpleStringProperty todaysIncome = new SimpleStringProperty();
-    private SimpleStringProperty totalIncome = new SimpleStringProperty();
-    private SimpleStringProperty totalItemsSold = new SimpleStringProperty();
-    private SimpleStringProperty bestSeller = new SimpleStringProperty();
-
+    private final OrderDao orderDao = new OrderDaoImpl();
+    private final SimpleStringProperty todaysIncome = new SimpleStringProperty();
+    private final SimpleStringProperty totalIncome = new SimpleStringProperty();
+    private final SimpleStringProperty totalItemsSold = new SimpleStringProperty();
+    private final SimpleStringProperty bestSeller = new SimpleStringProperty();
 
     @FXML
     public void initialize() {
         setupDashboardData();
         setupReportTypeComboBox();
-        setCellValueFactory();
-        updateReportViews("Daily Sales Report");
-
+        setupDatePicker();
+        setCellValueFactories();
+        updateReportViews("Daily Sales Report", datePicker.getValue());
         reportTypeComboBox.getSelectionModel().select("Daily Sales Report");
         reportTypeComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                updateReportViews(newVal);
+            updateReportViews(newVal, datePicker.getValue());
+        });
+    }
+
+    private void setupDatePicker() {
+        datePicker.setValue(LocalDate.now());
+        datePicker.setOnAction(event -> {
+            LocalDate selectedDate = datePicker.getValue();
+            if (selectedDate != null) {
+                String reportType = reportTypeComboBox.getValue();
+                updateReportViews(reportType, selectedDate);
             }
         });
     }
 
-    private void setCellValueFactory() {
+    private void setCellValueFactories() {
         categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
         quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
         salesColumn.setCellValueFactory(new PropertyValueFactory<>("sales"));
@@ -96,6 +101,7 @@ public class ReportController {
         calculateBestSeller();
     }
 
+    // Calculate today's income from completed orders.
     private void calculateTodaysIncome() {
         LocalDate today = LocalDate.now();
         List<Order> ordersToday = orderDao.getOrdersByDate(today);
@@ -108,37 +114,41 @@ public class ReportController {
         todaysIncome.set(String.format("RM%.2f", income));
     }
 
+    // Calculate total income from all orders.
     private void calculateTotalIncome() {
         double income = orderDao.getTotalIncome();
         totalIncome.set(String.format("RM%.2f", income));
     }
 
+    // Calculate total items sold.
     private void calculateTotalItemsSold() {
         int itemsSold = orderDao.getTotalItemsSold();
         totalItemsSold.set(String.valueOf(itemsSold));
     }
 
+    // Determine the best selling product.
     private void calculateBestSeller() {
         String bestSellingProduct = orderDao.getBestSeller();
         bestSeller.set(bestSellingProduct);
     }
 
-    private void updateReportViews(String reportType) {
+    // Update the report views and sales bar chart based on the selected report type and date.
+    private void updateReportViews(String reportType, LocalDate selectedDate) {
         reportTableView.getItems().clear();
         salesBarChart.getData().clear();
 
         switch (reportType) {
             case "Daily Sales Report":
-                populateDailySalesReport();
+                populateDailySalesReport(selectedDate);
                 break;
             case "Weekly Sales Report":
-                populateWeeklySalesReport();
+                populateWeeklySalesReport(selectedDate);
                 break;
             case "Monthly Sales Report":
-                populateMonthlySalesReport();
+                populateMonthlySalesReport(selectedDate);
                 break;
             case "Annual Sales Report":
-                populateAnnualSalesReport();
+                populateAnnualSalesReport(selectedDate);
                 break;
             case "Sales by Menu Item":
                 populateSalesByMenuItemReport();
@@ -152,6 +162,12 @@ public class ReportController {
         }
     }
 
+    // Updates the table view and bar chart with the given sales data.
+    private void updateUIComponents(Collection<Report> salesData) {
+        reportTableView.setItems(FXCollections.observableArrayList(salesData));
+        updateSalesBarChart(salesData);
+    }
+
     private void updateSalesBarChart(Collection<Report> salesData) {
         XYChart.Series<String, Number> salesSeries = new XYChart.Series<>();
 
@@ -162,52 +178,26 @@ public class ReportController {
         salesBarChart.getData().setAll(salesSeries);
     }
 
-    // Daily Sales Report
-    private void populateDailySalesReport() {
-        LocalDate today = LocalDate.of(2024, 4, 19);
-        List<Report> todayReport = orderDao.getDailySales(today);
-
-        Map<String, Report> completeTodayReport = getCompleteSalesData(todayReport);
-
-        reportTableView.setItems(FXCollections.observableArrayList(completeTodayReport.values()));
-        updateSalesBarChart(completeTodayReport.values());
-    }
-
-    private Map<String, Report> getCompleteSalesData(List<Report> salesData) {
-        String[] mealTimes = {"Breakfast", "Lunch", "Dinner", "Others"};
-
-        Map<String, Report> completeData = new LinkedHashMap<>();
-        for (String mealTime : mealTimes) {
-            completeData.put(mealTime, new Report(mealTime, 0, 0.0));
-        }
-
+    // Aggregate sales data for each report type
+    private void aggregateSalesData(List<Report> salesData, Map<String, Report> dataMap) {
         for (Report sale : salesData) {
-            Report existingData = completeData.get(sale.getCategory());
-            existingData.incrementQuantity(sale.getQuantity());
-            existingData.addToSales(sale.getSales());
+            Report existingData = dataMap.get(sale.getCategory());
+            if (existingData != null) {
+                existingData.incrementQuantity(sale.getQuantity());
+                existingData.addToSales(sale.getSales());
+            }
         }
-
-        return completeData;
     }
 
-    private void populateWeeklySalesReport() {
-        LocalDate today = LocalDate.of(2024, 4, 15);
-        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
-
-        List<Report> weeklySalesData = orderDao.getWeeklySales(startOfWeek, endOfWeek);
-        Map<String, Report> completeWeeklyData = initializeWeeklyData(startOfWeek);
-
-        for (Report dailySale : weeklySalesData) {
-           if (completeWeeklyData.containsKey(dailySale.getCategory())) {
-                Report report = completeWeeklyData.get(dailySale.getCategory());
-                report.setQuantity(dailySale.getQuantity());
-                report.setSales(dailySale.getSales());
-           }
+    // Initialise all the data for each report type
+    private Map<String, Report> initializeDailyData() {
+        Map<String, Report> map = new LinkedHashMap<>();
+        String[] mealTimes = {"Breakfast", "Lunch", "Dinner", "Others"};
+        for (String mealTime : mealTimes) {
+            map.put(mealTime, new Report(mealTime, 0, 0.0));
         }
 
-        reportTableView.setItems(FXCollections.observableArrayList(completeWeeklyData.values()));
-        updateSalesBarChart(completeWeeklyData.values());
+        return map;
     }
 
     private Map<String, Report> initializeWeeklyData(LocalDate startOfWeek) {
@@ -221,54 +211,18 @@ public class ReportController {
         return map;
     }
 
-    private void populateMonthlySalesReport() {
-        LocalDate startOfMonth = LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate endOfMonth = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
-
-        List<Report> monthlySalesData = orderDao.getMonthlySales(startOfMonth, endOfMonth);
-        Map<String, Report> completeMonthlyData = initializeMonthlyData(startOfMonth);
-
-        for (Report dailySale : monthlySalesData) {
-            if (completeMonthlyData.containsKey(dailySale.getCategory())) {
-                Report report = completeMonthlyData.get(dailySale.getCategory());
-                report.setQuantity(dailySale.getQuantity());
-                report.setSales(dailySale.getSales());
-            }
-        }
-
-        // Update the table view and bar chart for the monthly report
-        reportTableView.setItems(FXCollections.observableArrayList(completeMonthlyData.values()));
-        updateSalesBarChart(completeMonthlyData.values());
-    }
-
     private Map<String, Report> initializeMonthlyData(LocalDate startOfMonth) {
         Map<String, Report> map = new LinkedHashMap<>();
         LocalDate date = startOfMonth;
-        while (!date.isAfter(startOfMonth.with(TemporalAdjusters.lastDayOfMonth()))) {
+        LocalDate endOfMonth = startOfMonth.with(TemporalAdjusters.lastDayOfMonth());
+
+        while (!date.isAfter(endOfMonth)) {
             String dayName = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             map.put(dayName, new Report(dayName, 0, 0.0));
             date = date.plusDays(1);
         }
+
         return map;
-    }
-
-    private void populateAnnualSalesReport() {
-        LocalDate startOfYear = LocalDate.now().with(TemporalAdjusters.firstDayOfYear());
-        LocalDate endOfYear = LocalDate.now().with(TemporalAdjusters.lastDayOfYear());
-
-        List<Report> annualSalesData = orderDao.getAnnualSales(startOfYear, endOfYear);
-        Map<String, Report> completeAnnualData = initializeAnnualData();
-
-        for (Report monthlySale : annualSalesData) {
-            if (completeAnnualData.containsKey(monthlySale.getCategory())) {
-                Report report = completeAnnualData.get(monthlySale.getCategory());
-                report.setQuantity(monthlySale.getQuantity());
-                report.setSales(monthlySale.getSales());
-            }
-        }
-
-        reportTableView.setItems(FXCollections.observableArrayList(completeAnnualData.values()));
-        updateSalesBarChart(completeAnnualData.values());
     }
 
     private Map<String, Report> initializeAnnualData() {
@@ -280,38 +234,80 @@ public class ReportController {
         return map;
     }
 
-    private void populateSalesByMenuItemReport() {
-        // Fetch the sales data for each menu item
-        List<Report> menuItemSalesData = orderDao.getSalesByMenuItem();
-
-        // Clear existing data in the UI components
-        reportTableView.getItems().clear();
-        salesBarChart.getData().clear();
-
-        // Prepare a new series for the BarChart
-        XYChart.Series<String, Number> salesSeries = new XYChart.Series<>();
-        salesSeries.setName("Menu Item Sales");
-
-        // Populate the table and the chart with new data
-        for (Report report : menuItemSalesData) {
-            // Add data to the TableView
-            reportTableView.getItems().add(report);
-
-            // Create a new chart data point for each menu item and add it to the series
-            XYChart.Data<String, Number> chartData = new XYChart.Data<>(report.getCategory(), report.getSales());
-            salesSeries.getData().add(chartData);
+    private Map<String, Report> initializeMenuItemData(List<Report> menuItemSalesData) {
+        Map<String, Report> menuItemDataMap = new LinkedHashMap<>();
+        for (Report item : menuItemSalesData) {
+            menuItemDataMap.put(item.getCategory(), new Report(item.getCategory(), 0, 0.0));
         }
-
-        // Add the series to the BarChart
-        salesBarChart.getData().add(salesSeries);
-
-        // Update layout to reflect new data
-        Platform.runLater(() -> salesBarChart.layout());
+        return menuItemDataMap;
     }
 
+    private Map<String, Report> initializeCategoryData(List<Report> categorySalesData) {
+        Map<String, Report> categoryDataMap = new LinkedHashMap<>();
+        for (Report item : categorySalesData) {
+            categoryDataMap.putIfAbsent(item.getCategory(), new Report(item.getCategory(), 0, 0.0));
+            categoryDataMap.get(item.getCategory()).incrementQuantity(item.getQuantity());
+            categoryDataMap.get(item.getCategory()).addToSales(item.getSales());
+        }
+        return categoryDataMap;
+    }
+
+    // Populates all the data for each report type.
+    private void populateDailySalesReport(LocalDate date) {
+        List<Report> dailySalesData = orderDao.getDailySales(date);
+        Map<String, Report> completeDailyData = initializeDailyData();
+
+        aggregateSalesData(dailySalesData, completeDailyData);
+        updateUIComponents(completeDailyData.values());
+    }
+
+    private void populateWeeklySalesReport(LocalDate date) {
+        LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate endOfWeek = date.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+
+        List<Report> weeklySalesData = orderDao.getWeeklySales(startOfWeek, endOfWeek);
+        Map<String, Report> completeWeeklyData = initializeWeeklyData(startOfWeek);
+
+        aggregateSalesData(weeklySalesData, completeWeeklyData);
+        updateUIComponents(completeWeeklyData.values());
+    }
+
+    private void populateMonthlySalesReport(LocalDate date) {
+        LocalDate startOfMonth = date.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate endOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
+
+        List<Report> monthlySalesData = orderDao.getMonthlySales(startOfMonth, endOfMonth);
+        Map<String, Report> completeMonthlyData = initializeMonthlyData(startOfMonth);
+
+        aggregateSalesData(monthlySalesData, completeMonthlyData);
+        updateUIComponents(completeMonthlyData.values());
+    }
+
+    private void populateAnnualSalesReport(LocalDate date) {
+        LocalDate startOfYear = date.with(TemporalAdjusters.firstDayOfYear());
+        LocalDate endOfYear = date.with(TemporalAdjusters.lastDayOfYear());
+
+        List<Report> annualSalesData = orderDao.getAnnualSales(startOfYear, endOfYear);
+        Map<String, Report> completeAnnualData = initializeAnnualData();
+
+        aggregateSalesData(annualSalesData, completeAnnualData);
+        updateUIComponents(completeAnnualData.values());
+    }
+
+    private void populateSalesByMenuItemReport() {
+        List<Report> menuItemSalesData = orderDao.getSalesByMenuItem();
+        Map<String, Report> completeMenuItemData = initializeMenuItemData(menuItemSalesData);
+
+        aggregateSalesData(menuItemSalesData, completeMenuItemData);
+        updateUIComponents(completeMenuItemData.values());
+    }
 
     private void populateSalesByCategoryReport() {
-        // TODO: Populate the report for sales by category
+        List<Report> categorySalesData = orderDao.getSalesByCategory();
+        Map<String, Report> completeCategoryData = initializeCategoryData(categorySalesData);
+
+        aggregateSalesData(categorySalesData, completeCategoryData);
+        updateUIComponents(completeCategoryData.values());
     }
 }
 
