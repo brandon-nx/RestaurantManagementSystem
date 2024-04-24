@@ -1,32 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
+<?import javafx.scene.control.cell.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
-<?import javafx.scene.control.cell.PropertyValueFactory?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.CustomerController">
-    <BorderPane fx:id="mainBorderPane" prefHeight="600.0" prefWidth="1100.0">
+    <BorderPane prefHeight="600.0" prefWidth="1100.0">
         <left>
-            <VBox alignment="TOP_CENTER" prefHeight="574.0" prefWidth="109.0" spacing="10" style="-fx-background-color: #000000; -fx-padding: 10;" BorderPane.alignment="CENTER">
-                <ImageView fitHeight="100" fitWidth="100" pickOnBounds="true" preserveRatio="true">
-                    <Image url="@/logo.png"/>
+            <VBox alignment="TOP_CENTER" prefHeight="574.0" prefWidth="109.0" spacing="10" style="-fx-background-color: #fa8e4b; -fx-padding: 10;" BorderPane.alignment="CENTER">
+                <ImageView fitHeight="150" fitWidth="150" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/logo.png" />
                 </ImageView>
-                <Text fill="WHITE" style="-fx-font-size: 20;-fx-background-color: transparent; -fx-text-fill: white;" text="Big Bite Restaurant" />
-                <Text fx:id="welcomeText" fill="WHITE" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Welcome, Customer" />
-                <Button fx:id="appetizersButton" text="Appetizers" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
-                <Button fx:id="entreesButton" text="Entrées" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
-                <Button fx:id="sidesButton" text="Sides" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
-                <Button fx:id="dessertsButton" text="Desserts" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
-                <Button fx:id="beveragesButton" text="Beverages" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
-                <Button fx:id="signOutButton" text="Sign Out" minWidth="150" onAction="#handleSignOutAction" style="-fx-background-color: transparent; -fx-text-fill: white;" />
+
+                <Text fx:id="welcomeText" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Welcome, Admin111">
+                    <font>
+                        <Font name="System Bold Italic" size="14.0" />
+                    </font>
+                </Text>
+
+                <Button fx:id="appetizersButton" alignment="CENTER" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Appetizers" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
+
+                <Button fx:id="entreesButton" alignment="CENTER" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Entrées" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
+
+                <Button fx:id="sidesButton" alignment="CENTER" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Sides" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
+
+                <Button fx:id="dessertsButton" alignment="CENTER" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Desserts" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
+
+                <Button fx:id="beveragesButton" alignment="CENTER" minWidth="150" onAction="#handleCategoryAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Beverages" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
+
+                <Button fx:id="signOutButton" alignment="CENTER" minWidth="150" onAction="#handleSignOutAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Sign Out" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
             </VBox>
         </left>
         <center>
-            <VBox fx:id="centerVBox" BorderPane.alignment="CENTER" spacing="20" style="-fx-padding: 20;">
+            <VBox fx:id="centerVBox" alignment="TOP_CENTER" spacing="20" style="-fx-background-color: rgba(250,142,75,0.42); -fx-padding: 20;" BorderPane.alignment="CENTER">
                 <HBox alignment="CENTER" spacing="15">
-                    <!-- Menu item VBoxes go here -->
+                    <!-- Menu item VBoxes added in controller -->
                 </HBox>
             </VBox>
         </center>
@@ -37,32 +71,35 @@
                     <columns>
                         <TableColumn fx:id="productNameColumn" text="Item">
                             <cellValueFactory>
-                                <PropertyValueFactory property="productName"/>
+                                <PropertyValueFactory property="productName" />
                             </cellValueFactory>
                         </TableColumn>
                         <TableColumn fx:id="quantityColumn" text="Quantity">
                             <cellValueFactory>
-                                <PropertyValueFactory property="quantity"/>
+                                <PropertyValueFactory property="quantity" />
                             </cellValueFactory>
                         </TableColumn>
                         <TableColumn fx:id="priceColumn" text="Price (RM)">
                             <cellValueFactory>
-                                <PropertyValueFactory property="price"/>
+                                <PropertyValueFactory property="price" />
                             </cellValueFactory>
                         </TableColumn>
                     </columns>
                 </TableView>
                 <HBox spacing="10">
-                    <Text fx:id="totalText" text="Total: RM0.0" />
+                    <Text fx:id="totalText" text="Total: RM0.0">
+                  <font>
+                     <Font name="System Bold" size="12.0" />
+                  </font></Text>
                 </HBox>
                 <HBox VBox.vgrow="NEVER">
-                    <Button fx:id="clearOrderButton" text="Clear Order" onAction="#handleClearOrderAction" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                    <Button fx:id="clearOrderButton" maxWidth="Infinity" onAction="#handleClearOrderAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Clear Order" HBox.hgrow="ALWAYS" />
                 </HBox>
                 <HBox VBox.vgrow="NEVER">
-                    <Button fx:id="confirmOrderButton" text="Confirm Order" onAction="#handleConfirmOrderAction" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                    <Button fx:id="confirmOrderButton" maxWidth="Infinity" onAction="#handleConfirmOrderAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Confirm Order" HBox.hgrow="ALWAYS" />
                 </HBox>
                 <HBox VBox.vgrow="NEVER">
-                    <Button fx:id="receiptButton" text="Receipt" onAction="#handleReceiptAction" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    <Button fx:id="receiptButton" maxWidth="Infinity" onAction="#handleReceiptAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Receipt" HBox.hgrow="ALWAYS" />
                 </HBox>
             </VBox>
         </right>

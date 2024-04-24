@@ -8,6 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -16,6 +17,13 @@ import java.util.Locale;
 import java.text.NumberFormat;
 
 public class ReceiptController {
+    private static final Locale MY_LOCALE = new Locale("en", "MY");
+    private static final String RESTAURANT_NAME = "Big Bite Restaurant";
+    private static final String RESTAURANT_INFO = "123, Jalan 123, One Heights,\nJohor, Malaysia\nTEL : 123456789";
+    private static final String DATE_PATTERN = "dd/MM/yyyy";
+    private static final String TIME_PATTERN = "HH:mm:ss";
+    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(MY_LOCALE);
+
     @FXML
     private Text restaurantName, restaurantInfo;
     @FXML
@@ -24,46 +32,65 @@ public class ReceiptController {
     private Label subtotalPrice, serviceChargePrice, taxPrice, totalPrice, footerLabel;
 
     public void setReceiptDetails(List<OrderItem> orderItems, double subtotal, double serviceCharge, double tax, double total) {
-        itemsGrid.getChildren().clear(); // Clear previous items if needed
+        clearItemsGrid();
+        displayRestaurantInfo();
+        addOrderItemsToGrid(orderItems);
+        displayPrices(subtotal, serviceCharge, tax, total);
+        setFooterDateAndTime();
+    }
 
-        // Setup the NumberFormat for currency based on Locale
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "MY"));
+    private void clearItemsGrid() {
+        itemsGrid.getChildren().clear();
+    }
 
-        // Display restaurant information
-        restaurantName.setText("Big Bite Restaurant");
-        restaurantInfo.setText("123, Jalan 123, One Heights,\nJohor, Malaysia\nTEL : 123456789");
+    private void displayRestaurantInfo() {
+        restaurantName.setText(RESTAURANT_NAME);
+        restaurantInfo.setText(RESTAURANT_INFO);
+    }
 
+    private void addOrderItemsToGrid(List<OrderItem> orderItems) {
         if (orderItems.isEmpty()) {
-            Label noItemsLabel = new Label("No items in this order.");
-            itemsGrid.add(noItemsLabel, 0, 0, 3, 1);
-            GridPane.setHalignment(noItemsLabel, HPos.CENTER);
+            itemsGrid.add(createCenterAlignedLabel("No items in this order."), 0, 0, 3, 1);
         } else {
-            // For each OrderItem, create a row in the GridPane
             for (int i = 0; i < orderItems.size(); i++) {
                 OrderItem item = orderItems.get(i);
-                Label nameLabel = new Label(item.getProductName());
-                Label quantityLabel = new Label(String.format("x%d", item.getQuantity()));
-                Label priceLabel = new Label(currencyFormat.format(item.getPrice()));
-
-                nameLabel.setMaxWidth(Double.MAX_VALUE);
-                GridPane.setHalignment(priceLabel, HPos.RIGHT);
-                GridPane.setHgrow(nameLabel, Priority.ALWAYS);
-
-                itemsGrid.add(quantityLabel, 0, i);
-                itemsGrid.add(nameLabel, 1, i);
-                itemsGrid.add(priceLabel, 2, i);
+                itemsGrid.add(new Label(String.format("x%d", item.getQuantity())), 0, i);
+                Label nameLabel = createNameLabel(item.getProductName());
+                Label priceLabel = createPriceLabel(item.getPrice());
+                itemsGrid.addRow(i, nameLabel, priceLabel);
             }
         }
+    }
 
-        // Set text for subtotal, service charge, etc.
-        subtotalPrice.setText(currencyFormat.format(subtotal));
-        serviceChargePrice.setText(currencyFormat.format(serviceCharge));
-        taxPrice.setText(currencyFormat.format(tax));
-        totalPrice.setText(currencyFormat.format(total));
+    private Label createCenterAlignedLabel(String text) {
+        Label label = new Label(text);
+        GridPane.setHalignment(label, HPos.CENTER);
+        return label;
+    }
 
-        // Set footer date and time
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private Label createNameLabel(String name) {
+        Label nameLabel = new Label(name);
+        nameLabel.setMaxWidth(Double.MAX_VALUE);
+        GridPane.setHgrow(nameLabel, Priority.ALWAYS);
+        return nameLabel;
+    }
+
+    private Label createPriceLabel(double price) {
+        Label priceLabel = new Label(CURRENCY_FORMAT.format(price));
+        GridPane.setHalignment(priceLabel, HPos.RIGHT);
+        return priceLabel;
+    }
+
+    private void displayPrices(double subtotal, double serviceCharge, double tax, double total) {
+        subtotalPrice.setText(CURRENCY_FORMAT.format(subtotal));
+        serviceChargePrice.setText(CURRENCY_FORMAT.format(serviceCharge));
+        taxPrice.setText(CURRENCY_FORMAT.format(tax));
+        totalPrice.setText(CURRENCY_FORMAT.format(total));
+    }
+
+    private void setFooterDateAndTime() {
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern(DATE_PATTERN);
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern(TIME_PATTERN);
         footerLabel.setText(String.format("Date: %s    Time: %s",
                 LocalDate.now().format(dateFormatter),
                 LocalTime.now().format(timeFormatter)));

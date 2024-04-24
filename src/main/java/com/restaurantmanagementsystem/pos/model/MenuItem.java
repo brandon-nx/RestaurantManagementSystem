@@ -9,6 +9,12 @@ public class MenuItem {
     private int stock;
     private String status;
 
+    // Default Constructor
+    public MenuItem() {
+
+    }
+
+    // Constructor
     public MenuItem(String productId, String name, double price, String imagePath, String category, int stock, String status) {
         this.productId = productId;
         this.name = name;

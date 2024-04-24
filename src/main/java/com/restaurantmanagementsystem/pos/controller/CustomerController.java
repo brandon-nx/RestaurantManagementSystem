@@ -21,6 +21,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -133,7 +135,10 @@ public class CustomerController {
         VBox itemVBox = new VBox(10);
         itemVBox.setAlignment(Pos.CENTER);
         ImageView imageView = createImageView(menuItem.getImagePath());
-        Text itemName = new Text(menuItem.getName() + " RM" + menuItem.getPrice());
+        Text itemName = new Text(menuItem.getName());
+        itemName.setFont(Font.font("System", FontWeight.BOLD, 12));
+
+        Text itemPrice = new Text(String.format("RM %.2f", menuItem.getPrice()));
         Button addButton = new Button("Add");
         addButton.setId("addButton");
         addButton.setOnAction(this::handleAddItemAction);
@@ -144,12 +149,12 @@ public class CustomerController {
             addButton.setTooltip(new Tooltip("Out of stock"));
         }
 
-        itemVBox.getChildren().addAll(imageView, itemName, addButton);
+        itemVBox.getChildren().addAll(imageView, itemName, itemPrice, addButton);
         return itemVBox;
     }
 
     private ImageView createImageView(String imagePath) {
-        ImageView imageView = null;
+        ImageView imageView;
         try {
             Image image;
             if (!imagePath.startsWith("http") && !imagePath.startsWith("file:")) {
@@ -163,16 +168,15 @@ public class CustomerController {
                 image = new Image(imagePath);
             }
             imageView = new ImageView(image);
-            imageView.setFitHeight(100);
-            imageView.setFitWidth(150);
-            imageView.setPreserveRatio(true);
+            imageView.setFitHeight(115);
+            imageView.setFitWidth(115);
             imageView.setSmooth(true);
+
         } catch (Exception e) {
             e.printStackTrace();
             imageView = new ImageView(new Image("logo.png"));
-            imageView.setFitHeight(100);
-            imageView.setFitWidth(150);
-            imageView.setPreserveRatio(true);
+            imageView.setFitHeight(115);
+            imageView.setFitWidth(115);
             imageView.setSmooth(true);
         }
         return imageView;
@@ -341,8 +345,8 @@ public class CustomerController {
         newOrder.setOrderItems(new ArrayList<>(orderItems));
         newOrder.setTotalAmount(total);
         String orderId = orderDao.addOrder(newOrder);
-        newOrder.setOrderId(orderId);
 
+        newOrder.setOrderId(orderId);
         orderDao.addOrderItems(new ArrayList<>(orderItems), orderId);
 
         // Add current orderItems to allConfirmedOrders

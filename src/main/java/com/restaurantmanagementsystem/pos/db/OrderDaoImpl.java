@@ -14,26 +14,29 @@ import java.util.*;
 public class OrderDaoImpl implements OrderDao {
     @Override
     public String addOrder(Order order) {
-        String newOrderId = generateNewOrderId();
         String sql = "INSERT INTO orders (order_id, user_id, total_amount, status) VALUES (?, ?, ?, 'pending')";
+
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            String newOrderId = generateNewOrderId();
             pstmt.setString(1, newOrderId);
             pstmt.setString(2, order.getUserId());
             pstmt.setDouble(3, order.getTotalAmount());
             pstmt.executeUpdate();
-            return newOrderId; // Return the new ID
+            return newOrderId;
+
         } catch (SQLException e) {
-            e.printStackTrace();
-            // Proper error handling should be done here
-            return null; // Return null in case of error
+            System.err.println("Error adding order to database: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to process your order at this time. Please try again later.");
         }
     }
-
 
     @Override
     public void addOrderItems(List<OrderItem> orderItems, String orderId) {
         String sql = "INSERT INTO order_items (order_item_id, order_id, product_id, quantity, price, product_name) VALUES (?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -47,34 +50,38 @@ public class OrderDaoImpl implements OrderDao {
                 pstmt.setString(6, item.getProductName());
                 pstmt.executeUpdate();
             }
+
         } catch (SQLException e) {
-            e.printStackTrace();
-            // Proper error handling should be done here
+            System.err.println("Error adding order items to database: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to add order items at this time. Please try again later.");
         }
     }
 
     @Override
     public void updateOrderStatus(Order order) {
-        String sql = "UPDATE orders SET status = ?, updated_at = NOW() WHERE order_id = ?"; // Adjust SQL to match your schema
+        String sql = "UPDATE orders SET status = ?, updated_at = NOW() WHERE order_id = ?";
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setString(1, order.getStatus());
             pstmt.setString(2, order.getOrderId());
-
             pstmt.executeUpdate();
+
         } catch (SQLException e) {
-            e.printStackTrace(); // Replace with proper error handling
+            System.err.println("Error updating order status in the database: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to update order status at this time. Please try again later.");
         }
     }
 
     @Override
     public List<Order> getAllOrders() {
-        List<Order> orders = new ArrayList<>();
         String sql = "SELECT o.order_id, o.user_id, u.username AS customer_name, o.total_amount, o.status, o.created_at, o.updated_at " +
                 "FROM orders o " +
                 "JOIN users u ON o.user_id = u.user_id";
+        List<Order> orders = new ArrayList<>();
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -84,7 +91,7 @@ public class OrderDaoImpl implements OrderDao {
                 Order order = new Order();
                 order.setOrderId(rs.getString("order_id"));
                 order.setUserId(rs.getString("user_id"));
-                order.setCustomerName(rs.getString("customer_name")); // This assumes you have a customerName field in Order
+                order.setCustomerName(rs.getString("customer_name"));
                 order.setTotalAmount(rs.getDouble("total_amount"));
                 order.setStatus(rs.getString("status"));
                 order.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
@@ -93,43 +100,19 @@ public class OrderDaoImpl implements OrderDao {
                 orders.add(order);
             }
 
-
         } catch (SQLException e) {
-            e.printStackTrace(); // Consider more robust error handling
+            System.err.println("Error retrieving all orders from the database: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to retrieve orders at this time. Please try again later.");
         }
+
         return orders;
-    }
-
-
-    private List<OrderItem> getOrderItemsByOrderId(String orderId) {
-        List<OrderItem> orderItems = new ArrayList<>();
-        String sql = "SELECT * FROM order_items WHERE order_id = ?";
-
-        try (Connection conn = DatabaseConnector.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setString(1, orderId);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    OrderItem item = new OrderItem();
-                    item.setOrderId(orderId);
-                    item.setProductName(rs.getString("product_name")); // replace with your column name
-                    item.setPrice(rs.getDouble("price")); // replace with your column name
-                    item.setQuantity(rs.getInt("quantity")); // replace with your column name
-                    orderItems.add(item);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return orderItems;
     }
 
     @Override
     public List<Order> getOrdersByDate(LocalDate date) {
+        String sql = "SELECT * FROM orders WHERE DATE(created_at) = ?";
         List<Order> orders = new ArrayList<>();
-        String sql = "SELECT * FROM orders WHERE DATE(created_at) = ?"; // Assuming your database supports this syntax
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -146,8 +129,11 @@ public class OrderDaoImpl implements OrderDao {
                     orders.add(order);
                 }
             }
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Error retrieving orders for date " + date + ": " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to retrieve orders for the specified date. Please try again later.");
         }
 
         return orders;
@@ -165,8 +151,11 @@ public class OrderDaoImpl implements OrderDao {
             if (rs.next()) {
                 totalIncome = rs.getDouble("totalIncome");
             }
+
         } catch (SQLException e) {
-            e.printStackTrace(); // Handle exception appropriately
+            System.err.println("Error calculating total income: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to calculate total income. Please try again later.");
         }
 
         return totalIncome;
@@ -186,8 +175,11 @@ public class OrderDaoImpl implements OrderDao {
             if (rs.next()) {
                 totalItemsSold = rs.getInt("totalItemsSold");
             }
+
         } catch (SQLException e) {
-            e.printStackTrace(); // Handle exception appropriately
+            System.err.println("Error calculating total items sold: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to calculate total items sold. Please try again later.");
         }
 
         return totalItemsSold;
@@ -209,8 +201,11 @@ public class OrderDaoImpl implements OrderDao {
             if (rs.next()) {
                 bestSeller = rs.getString("product_name");
             }
+
         } catch (SQLException e) {
-            e.printStackTrace(); // Handle exception appropriately
+            System.err.println("Error determining the best selling product: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to determine the best seller. Please try again later.");
         }
 
         return bestSeller;
@@ -218,7 +213,6 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<Report> getDailySales(LocalDate date) {
-        List<Report> reportList = new ArrayList<>();
         String sql = "SELECT category, COUNT(*) as quantity, SUM(total_amount) as sales " +
                 "FROM ( " +
                 "  SELECT *, " +
@@ -233,6 +227,7 @@ public class OrderDaoImpl implements OrderDao {
                 ") AS orders_grouped " +
                 "GROUP BY category " +
                 "ORDER BY FIELD(category, 'Breakfast', 'Lunch', 'Dinner', 'Others');";
+        List<Report> reportList = new ArrayList<>();
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -247,21 +242,25 @@ public class OrderDaoImpl implements OrderDao {
                     reportList.add(new Report(category, quantity, sales));
                 }
             }
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Error retrieving daily sales report: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to retrieve daily sales report. Please try again later.");
         }
+
         return reportList;
     }
 
     @Override
     public List<Report> getWeeklySales(LocalDate startOfWeek, LocalDate endOfWeek) {
-        List<Report> weeklySales = new ArrayList<>();
         String sql = "SELECT DATE(created_at) AS date, SUM(total_amount) AS sales, COUNT(*) AS quantity, " +
                 "DAYNAME(created_at) AS day_of_week " +
                 "FROM orders " +
                 "WHERE DATE(created_at) BETWEEN ? AND ? AND status = 'done' " +
                 "GROUP BY date, day_of_week " +
                 "ORDER BY date ASC";
+        List<Report> weeklySales = new ArrayList<>();
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -277,8 +276,11 @@ public class OrderDaoImpl implements OrderDao {
                     weeklySales.add(new Report(dayOfWeek, quantity, sales));
                 }
             }
+
         } catch (SQLException e) {
-            e.printStackTrace(); // Log this exception
+            System.err.println("Error retrieving weekly sales report: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to retrieve weekly sales report. Please try again later.");
         }
 
         return weeklySales;
@@ -286,12 +288,12 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<Report> getMonthlySales(LocalDate startOfMonth, LocalDate endOfMonth) {
-        List<Report> monthlySales = new ArrayList<>();
         String sql = "SELECT DATE(created_at) AS date, SUM(total_amount) AS sales, COUNT(*) AS quantity " +
                 "FROM orders " +
                 "WHERE DATE(created_at) BETWEEN ? AND ? AND status = 'done' " +
                 "GROUP BY date " +
                 "ORDER BY date ASC";
+        List<Report> monthlySales = new ArrayList<>();
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -307,8 +309,11 @@ public class OrderDaoImpl implements OrderDao {
                     monthlySales.add(new Report(date.toString(), quantity, sales));
                 }
             }
+
         } catch (SQLException e) {
-            e.printStackTrace(); // Log this exception
+            System.err.println("Error retrieving monthly sales report: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to retrieve monthly sales report. Please try again later.");
         }
 
         return monthlySales;
@@ -316,12 +321,12 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<Report> getAnnualSales(LocalDate startOfYear, LocalDate endOfYear) {
-        List<Report> annualSales = new ArrayList<>();
         String sql = "SELECT MONTH(created_at) AS month, SUM(total_amount) AS sales, COUNT(*) AS quantity " +
                 "FROM orders " +
                 "WHERE DATE(created_at) BETWEEN ? AND ? AND status = 'done' " +
                 "GROUP BY month " +
                 "ORDER BY month ASC";
+        List<Report> annualSales = new ArrayList<>();
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -338,8 +343,11 @@ public class OrderDaoImpl implements OrderDao {
                     annualSales.add(new Report(monthName, quantity, sales));
                 }
             }
+
         } catch (SQLException e) {
-            e.printStackTrace(); // Log this exception
+            System.err.println("Error retrieving annual sales report: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to retrieve annual sales report. Please try again later.");
         }
 
         return annualSales;
@@ -347,7 +355,6 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<Report> getSalesByMenuItem() {
-        List<Report> menuItemSales = new ArrayList<>();
         String sql = "SELECT mi.name, SUM(oi.quantity) as quantity, SUM(oi.quantity * oi.price) as sales " +
                 "FROM order_items oi " +
                 "JOIN menu_items mi ON oi.product_id = mi.product_id " +
@@ -355,6 +362,7 @@ public class OrderDaoImpl implements OrderDao {
                 "WHERE o.status = 'done' " +
                 "GROUP BY mi.name " +
                 "ORDER BY sales DESC";
+        List<Report> menuItemSales = new ArrayList<>();
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -368,9 +376,11 @@ public class OrderDaoImpl implements OrderDao {
                     menuItemSales.add(new Report(menuItemName, quantity, sales));
                 }
             }
+
         } catch (SQLException e) {
-            // Handle exceptions properly here
-            e.printStackTrace();
+            System.err.println("Error retrieving sales by menu item: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to retrieve sales by menu item. Please try again later.");
         }
 
         return menuItemSales;
@@ -378,7 +388,6 @@ public class OrderDaoImpl implements OrderDao {
 
     @Override
     public List<Report> getSalesByCategory() {
-        List<Report> categorySales = new ArrayList<>();
         String sql = "SELECT mi.category, SUM(oi.quantity) AS quantity, SUM(oi.quantity * oi.price) AS sales " +
                 "FROM order_items oi " +
                 "JOIN menu_items mi ON oi.product_id = mi.product_id " +
@@ -386,6 +395,7 @@ public class OrderDaoImpl implements OrderDao {
                 "WHERE o.status = 'done' " +
                 "GROUP BY mi.category " +
                 "ORDER BY sales DESC";
+        List<Report> categorySales = new ArrayList<>();
 
         try (Connection conn = DatabaseConnector.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -399,8 +409,11 @@ public class OrderDaoImpl implements OrderDao {
                     categorySales.add(new Report(category, quantity, sales));
                 }
             }
+
         } catch (SQLException e) {
-            System.err.println("Error occurred while fetching sales by category: " + e.getMessage());
+            System.err.println("Error retrieving sales by category: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to retrieve sales by category. Please try again later.");
         }
 
         return categorySales;
@@ -408,9 +421,10 @@ public class OrderDaoImpl implements OrderDao {
 
 
     public String generateNewOrderId() {
-        String lastIdQuery = "SELECT order_id FROM orders ORDER BY order_id DESC LIMIT 1";
+        String sql = "SELECT order_id FROM orders ORDER BY order_id DESC LIMIT 1";
+
         try (Connection conn = DatabaseConnector.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(lastIdQuery);
+             PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
 
             if (rs.next()) {
@@ -420,16 +434,19 @@ public class OrderDaoImpl implements OrderDao {
             } else {
                 return "O-001";
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            return null;
+
+        } catch (SQLException e) {
+            System.err.println("Error generating new order ID: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to generate new order ID. Please try again later.");
         }
     }
 
     public String generateNewOrderItemId() {
-        String lastIdQuery = "SELECT order_item_id FROM order_items ORDER BY order_item_id DESC LIMIT 1";
+        String sql = "SELECT order_item_id FROM order_items ORDER BY order_item_id DESC LIMIT 1";
+
         try (Connection conn = DatabaseConnector.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(lastIdQuery);
+             PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
 
             if (rs.next()) {
@@ -439,9 +456,39 @@ public class OrderDaoImpl implements OrderDao {
             } else {
                 return "OI-001";
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-            return null;
+
+        } catch (SQLException e) {
+            System.err.println("Error generating new order item ID: " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to generate new order item ID. Please try again later.");
         }
+    }
+
+    private List<OrderItem> getOrderItemsByOrderId(String orderId) {
+        String sql = "SELECT * FROM order_items WHERE order_id = ?";
+        List<OrderItem> orderItems = new ArrayList<>();
+
+        try (Connection conn = DatabaseConnector.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, orderId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    OrderItem item = new OrderItem();
+                    item.setOrderId(orderId);
+                    item.setProductName(rs.getString("product_name"));
+                    item.setPrice(rs.getDouble("price"));
+                    item.setQuantity(rs.getInt("quantity"));
+                    orderItems.add(item);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error retrieving order items for order ID " + orderId + ": " + e.getMessage());
+            e.printStackTrace(System.err);
+            throw new RuntimeException("Unable to retrieve order items at this time. Please try again later.");
+        }
+
+        return orderItems;
     }
 }

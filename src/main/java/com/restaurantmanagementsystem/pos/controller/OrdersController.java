@@ -2,57 +2,57 @@ package com.restaurantmanagementsystem.pos.controller;
 
 import com.restaurantmanagementsystem.pos.db.OrderDao;
 import com.restaurantmanagementsystem.pos.db.OrderDaoImpl;
+import com.restaurantmanagementsystem.pos.model.AlertUtils;
 import com.restaurantmanagementsystem.pos.model.Order;
-import com.restaurantmanagementsystem.pos.model.OrderItem;
+
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class OrdersController {
     @FXML
-    private TableView<Order> ordersTableView;
+    TableView<Order> ordersTableView;
     @FXML
-    private TableColumn<Order, String> orderIdColumn, orderItemsColumn, statusColumn, customerNameColumn;
+    TableColumn<Order, String> orderIdColumn;
     @FXML
-    private TableColumn<Order, Double> totalAmountColumn;
+    TableColumn<Order, String> orderItemsColumn;
     @FXML
-    private TableColumn<Order, Void> actionColumn;
-    private OrderDao orderDao = new OrderDaoImpl();
+    TableColumn<Order, String> statusColumn;
+    @FXML
+    TableColumn<Order, String> customerNameColumn;
+    @FXML
+    TableColumn<Order, Double> totalAmountColumn;
+    @FXML
+    TableColumn<Order, Void> actionColumn;
+    OrderDao orderDao = new OrderDaoImpl();
 
     @FXML
     public void initialize() {
+        setupColumns();
+        setUpActionColumn();
+        styleRowsBasedOnStatus();
+        loadOrders();
+    }
+
+    private void setupColumns() {
         orderIdColumn.setCellValueFactory(new PropertyValueFactory<>("orderId"));
         orderItemsColumn.setCellValueFactory(new PropertyValueFactory<>("orderItemsAsString"));
         totalAmountColumn.setCellValueFactory(new PropertyValueFactory<>("totalAmount"));
         statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
         customerNameColumn.setCellValueFactory(new PropertyValueFactory<>("customerName"));
-
-        setUpActionColumn();
-
-        loadOrders();
     }
 
+    // Configures action buttons within each row
     private void setUpActionColumn() {
         actionColumn.setCellFactory(col -> new TableCell<Order, Void>() {
-            private final Button doneButton = new Button("Done");
-            private final Button cancelButton = new Button("Cancel");
-            private final Button pendingButton = new Button("Pending");
+            private final Button doneButton = createActionButton("Done", this, "done");
+            private final Button cancelButton = createActionButton("Cancel", this, "cancelled");
+            private final Button pendingButton = createActionButton("Pending", this, "pending");
             private final HBox buttonGroup = new HBox(5, doneButton, cancelButton, pendingButton);
-
-            {
-                doneButton.setOnAction(event -> doneOrder(getTableView().getItems().get(getIndex())));
-                cancelButton.setOnAction(event -> cancelOrder(getTableView().getItems().get(getIndex())));
-                pendingButton.setOnAction(event -> pendingOrder(getTableView().getItems().get(getIndex())));
-            }
 
             @Override
             protected void updateItem(Void item, boolean empty) {
@@ -66,25 +66,61 @@ public class OrdersController {
         });
     }
 
+    private Button createActionButton(String buttonText, TableCell<Order, Void> cell, String status) {
+        Button button = new Button(buttonText);
+        button.setOnAction(event -> handleOrderAction(cell, status));
+        return button;
+    }
+
+    public void handleOrderAction(TableCell<Order, Void> cell, String status) {
+        TableView<Order> table = cell.getTableView();
+        if (table != null) {
+            int index = cell.getIndex();
+            Order order = table.getItems().get(index);
+            if (order != null) {
+                if (AlertUtils.showConfirmationAlert("Confirm Status Change", "Are you sure you want to change the order status to " + status + " ?")) {
+                    updateOrderStatus(order, status);
+                }
+            }
+        }
+    }
+
     private void loadOrders() {
         List<Order> orders = orderDao.getAllOrders();
         ordersTableView.setItems(FXCollections.observableArrayList(orders));
     }
 
-    private void doneOrder(Order order) {
-        updateOrderStatus(order, "done");
-    }
-
-    private void cancelOrder(Order order) {
-        updateOrderStatus(order, "cancelled");
-    }
-    private void pendingOrder(Order order) {
-        updateOrderStatus(order, "pending");
-    }
-
-    private void updateOrderStatus(Order order, String newStatus) {
+    void updateOrderStatus(Order order, String newStatus) {
         order.setStatus(newStatus);
         orderDao.updateOrderStatus(order);
         loadOrders();
+    }
+
+    // Styles the rows based on the status of the order
+    private void styleRowsBasedOnStatus() {
+        ordersTableView.setRowFactory(tv -> new TableRow<Order>() {
+            @Override
+            protected void updateItem(Order item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) {
+                    setStyle("");
+                } else {
+                    switch (item.getStatus()) {
+                        case "done":
+                            setStyle("-fx-background-color: lightgreen;");
+                            break;
+                        case "cancelled":
+                            setStyle("-fx-background-color: salmon;");
+                            break;
+                        case "pending":
+                            setStyle("-fx-background-color: lightyellow;");
+                            break;
+                        default:
+                            setStyle("");
+                            break;
+                    }
+                }
+            }
+        });
     }
 }

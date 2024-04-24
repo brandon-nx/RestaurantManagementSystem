@@ -25,9 +25,5 @@ public interface OrderDao {
     List<Report> getMonthlySales(LocalDate startOfMonth, LocalDate endOfMonth);
     List<Report> getAnnualSales(LocalDate startOfYear, LocalDate endOfYear);
     List<Report> getSalesByMenuItem();
-
-
     List<Report> getSalesByCategory();
-
-    String generateNewOrderId();
 }

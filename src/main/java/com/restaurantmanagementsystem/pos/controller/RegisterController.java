@@ -56,11 +56,6 @@ public class RegisterController {
             return;
         }
 
-        if (!contact.matches("\\d{10}")) {
-            AlertUtils.showErrorAlert("Invalid Contact", "Please enter a valid 10-digit contact number.");
-            return;
-        }
-
         if (registerCustomer(username, password, contact, address)) {
             AlertUtils.showInformationAlert("Registration Successful", "You have been registered successfully!");
             handleSwitchToLogin();

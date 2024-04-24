@@ -6,19 +6,46 @@
 <?import javafx.scene.text.*?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.AdminController">
-    <BorderPane fx:id="mainBorderPane" prefHeight="600.0" prefWidth="1100.0">
+    <BorderPane fx:id="mainBorderPane" prefHeight="600.0" prefWidth="1100.0" style="-fx-background-color: rgba(250,142,75,0.42); ">
         <left>
-            <VBox alignment="TOP_CENTER" prefHeight="574.0" prefWidth="109.0" spacing="10" style="-fx-background-color: #000000; -fx-padding: 10;" BorderPane.alignment="CENTER">
-                <ImageView fitHeight="100" fitWidth="100" pickOnBounds="true" preserveRatio="true">
-                    <Image url="@/logo.png"/>
+            <VBox alignment="TOP_CENTER" prefHeight="574.0" prefWidth="109.0" spacing="10" style="-fx-background-color: #fa8e4b; -fx-padding: 10;" BorderPane.alignment="CENTER">
+                <ImageView fitHeight="150" fitWidth="150" pickOnBounds="true" preserveRatio="true">
+                    <Image url="@/logo.png" />
                 </ImageView>
-                <Text fill="WHITE" style="-fx-font-size: 20;-fx-background-color: transparent; -fx-text-fill: white;" text="Big Bite Restaurant" />
-                <Text fx:id="welcomeText" fill="WHITE" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Welcome, Admin111" />
-                <Button minWidth="150" onAction="#handleReportAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Report" />
-                <Button minWidth="150" onAction="#handleInventoryAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Inventory" />
-                <Button minWidth="150" onAction="#handleViewOrdersAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="View Orders" />
-                <Button minWidth="150" onAction="#handleSignOutAction" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Sign Out" />
+
+                <Text fx:id="welcomeText" style="-fx-background-color: transparent; -fx-text-fill: white;" text="Welcome, Admin111">
+               <font>
+                  <Font name="System Bold Italic" size="14.0" />
+               </font>
+                </Text>
+
+                <Button alignment="CENTER" minWidth="150" onAction="#handleReportAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Report" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font>
+                </Button>
+
+                <Button alignment="CENTER" minWidth="150" onAction="#handleInventoryAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Inventory" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
+
+                <Button alignment="CENTER" minWidth="150" onAction="#handleViewOrdersAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Orders" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
+
+                <Button alignment="CENTER" minWidth="150" onAction="#handleSignOutAction" style="-fx-background-color: white; -fx-border-color: black; -fx-cursor: hand;" text="Sign Out" textAlignment="CENTER">
+                    <font>
+                        <Font name="System Bold" size="14.0" />
+                    </font>
+                </Button>
             </VBox>
         </left>
+        <center>
+            <!-- Dashboard added in controller depends buttons clicked -->
+        </center>
     </BorderPane>
 </AnchorPane>

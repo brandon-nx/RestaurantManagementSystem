@@ -9,9 +9,9 @@
 <BorderPane xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.restaurantmanagementsystem.pos.controller.OrdersController" prefHeight="600.0" prefWidth="910.0">
     <center>
         <VBox>
-            <TableView fx:id="ordersTableView" VBox.vgrow="ALWAYS">
+            <TableView fx:id="ordersTableView" VBox.vgrow="ALWAYS" >
                 <columns>
-                    <TableColumn fx:id="orderIdColumn" text="Order ID">
+                    <TableColumn fx:id="orderIdColumn" text="Order ID" style="-fx-alignment: CENTER;">
                         <cellValueFactory>
                             <PropertyValueFactory property="orderId"/>
                         </cellValueFactory>
@@ -21,23 +21,23 @@
                             <PropertyValueFactory property="orderItemsAsString"/>
                         </cellValueFactory>
                     </TableColumn>
-                    <TableColumn fx:id="totalAmountColumn" text="Total Amount" minWidth="150">
+                    <TableColumn fx:id="totalAmountColumn" text="Total Amount" style="-fx-alignment: CENTER;">
                         <cellValueFactory>
                             <PropertyValueFactory property="totalAmount"/>
                         </cellValueFactory>
                     </TableColumn>
-                    <TableColumn fx:id="statusColumn" text="Status">
+                    <TableColumn fx:id="statusColumn" text="Status" style="-fx-alignment: CENTER;">
                         <cellValueFactory>
                             <PropertyValueFactory property="status"/>
                         </cellValueFactory>
                     </TableColumn>
-                    <TableColumn fx:id="customerNameColumn" text="Customer">
+                    <TableColumn fx:id="customerNameColumn" text="Customer" style="-fx-alignment: CENTER;">
                         <cellValueFactory>
                             <PropertyValueFactory property="customerName"/>
                         </cellValueFactory>
                     </TableColumn>
-                    <TableColumn fx:id="actionColumn" text="Actions">
-                        <!-- The cell factory will be set in the controller -->
+                    <TableColumn fx:id="actionColumn" text="Actions" style="-fx-alignment: CENTER;">
+                        <!-- Action buttons added in controller -->
                     </TableColumn>
                 </columns>
 
