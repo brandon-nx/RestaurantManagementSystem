@@ -1,5 +1,6 @@
 package com.restaurantmanagementsystem.pos.controller;
 
+import com.restaurantmanagementsystem.pos.model.AlertUtils;
 import com.restaurantmanagementsystem.pos.model.Order;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -31,7 +32,7 @@ public class OrdersControllerTest {
                 stage.setScene(new Scene(root));
                 stage.show();
             } catch (Exception e) {
-                e.printStackTrace();
+                AlertUtils.showErrorAlert("Unexpected error", "An unexpected error has occurred. " + e.getMessage());
             }
         });
 
@@ -40,16 +41,13 @@ public class OrdersControllerTest {
 
     @Test
     public void testUpdateOrderStatus() throws Exception {
-        // Given
-        Order order = new Order();
-        order.setStatus("pending");
-        String newStatus = "done";
-
         Platform.runLater(() -> {
-            // When
+            Order order = new Order();
+            order.setStatus("pending");
+            String newStatus = "done";
+
             ordersController.updateOrderStatus(order, newStatus);
 
-            // Then
             assertEquals(newStatus, order.getStatus());
         });
 

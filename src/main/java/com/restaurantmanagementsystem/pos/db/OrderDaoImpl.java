@@ -80,7 +80,9 @@ public class OrderDaoImpl implements OrderDao {
     public List<Order> getAllOrders() {
         String sql = "SELECT o.order_id, o.user_id, u.username AS customer_name, o.total_amount, o.status, o.created_at, o.updated_at " +
                 "FROM orders o " +
-                "JOIN users u ON o.user_id = u.user_id";
+                "JOIN users u ON o.user_id = u.user_id " +
+                "ORDER BY o.order_id ASC";
+
         List<Order> orders = new ArrayList<>();
 
         try (Connection conn = DatabaseConnector.getConnection();

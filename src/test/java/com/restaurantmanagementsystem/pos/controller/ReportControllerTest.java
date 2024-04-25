@@ -1,5 +1,6 @@
 package com.restaurantmanagementsystem.pos.controller;
 
+import com.restaurantmanagementsystem.pos.model.AlertUtils;
 import com.restaurantmanagementsystem.pos.model.Report;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -9,11 +10,9 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.*;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,9 +37,10 @@ public class ReportControllerTest {
                 stage.setScene(new Scene(root));
                 stage.show();
             } catch (Exception e) {
-                e.printStackTrace();
+                AlertUtils.showErrorAlert("Unexpected error", "An unexpected error has occurred. " + e.getMessage());
             }
         });
+
         Thread.sleep(1000);
     }
 

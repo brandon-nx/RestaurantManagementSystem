@@ -19,6 +19,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -29,13 +30,13 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class CustomerController {
+    @FXML
+    public BorderPane mainBorderPane;
     @FXML
     private Button clearOrderButton, confirmOrderButton, receiptButton, appetizersButton, entreesButton, sidesButton, dessertsButton, beveragesButton, signOutButton;
     @FXML
@@ -48,11 +49,17 @@ public class CustomerController {
     private TableColumn<OrderItem, Number> quantityColumn, priceColumn;
     @FXML
     private VBox centerVBox;
+
     private User loggedInUser;
     private final MenuDao menuDao = new MenuDaoImpl();
     private final OrderDao orderDao = new OrderDaoImpl();
-    private ObservableList<OrderItem> orderItems = FXCollections.observableArrayList();
+
+    ObservableList<OrderItem> orderItems = FXCollections.observableArrayList();
     private List<OrderItem> allConfirmedOrders = new ArrayList<>();
+
+    private static final int MAX_ITEMS_PER_ROW = 4;
+    private static final int IMAGE_SIZE = 115;
+
 
     @FXML
     public void initialize() {
@@ -73,61 +80,83 @@ public class CustomerController {
         welcomeText.setText(String.format("Welcome, %s", user.getUsername()));
     }
 
-    // Sidebar menu with categories
+
+
+
+    // Sidebar menu with all food categories to choose from
     @FXML
     private void handleCategoryAction(ActionEvent event) {
         Button clickedButton = (Button) event.getSource();
         String category = getButtonCategory(clickedButton);
-
         loadCategory(category);
     }
 
     private String getButtonCategory(Button button) {
         String buttonId = button.getId();
-        return switch (buttonId) {
-            case "appetizersButton" -> "Appetizers";
-            case "entreesButton" -> "Entrées";
-            case "sidesButton" -> "Sides";
-            case "dessertsButton" -> "Desserts";
-            case "beveragesButton" -> "Beverages";
-            default -> ""; // Default case to handle any unexpected button ids
-        };
+        switch (buttonId) {
+            case "appetizersButton":
+                return "Appetizers";
+            case "entreesButton":
+                return "Entrées";
+            case "sidesButton":
+                return "Sides";
+            case "dessertsButton":
+                return "Desserts";
+            case "beveragesButton":
+                return "Beverages";
+            default:
+                return "";
+        }
     }
 
     private void loadCategory(String category) {
-        List<MenuItem> allItems = menuDao.getMenuItemsByCategory(category);
-        List<MenuItem> filteredItems = allItems.stream()
-                .filter(item -> {
-                    return !"unavailable".equals(item.getStatus());
-                })
-                .collect(Collectors.toList());
-        displayMenuItems(filteredItems);
+        List<MenuItem> menuItems = menuDao.getMenuItemsByCategory(category);
+        displayMenuItems(menuItems);
     }
 
-    // Display Menu Items
+    // Sign out action under all the categories
+    @FXML
+    private void handleSignOutAction() {
+        if (AlertUtils.showConfirmationAlert("Sign Out", "Are you sure you want to sign out?")) {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/login.fxml"));
+                Parent loginView = loader.load();
+                Stage stage = (Stage) mainBorderPane.getScene().getWindow();
+                stage.setScene(new Scene(loginView));
+                stage.show();
+            } catch (IOException e) {
+                System.err.println("Failed to Sign Out: " + e.getMessage());
+                AlertUtils.showErrorAlert("Error", "Failed to sign out. Please try again.");
+            }
+        }
+    }
+
+
+
+
+
+    // Create and display all available menu items
     private void displayMenuItems(List<MenuItem> menuItems) {
         centerVBox.getChildren().clear();
         HBox currentRow = new HBox(20);
         centerVBox.getChildren().add(currentRow);
 
-        int counter = 0;
+        int itemsInRow  = 0;
         for (MenuItem menuItem : menuItems) {
-            if (counter == 4) {
+            if (itemsInRow  == MAX_ITEMS_PER_ROW) {
                 currentRow = new HBox(20);
                 centerVBox.getChildren().add(currentRow);
-                counter = 0;
+                itemsInRow  = 0;
             }
 
             VBox itemVBox = createMenuItemVBox(menuItem);
             currentRow.getChildren().add(itemVBox);
 
-            Button addButton = (Button) itemVBox.lookup("#addButton" + menuItem.getProductId());
-            if (menuItem.getStock() <= 0 && addButton != null) {
-                addButton.setDisable(true);
-                addButton.setTooltip(new Tooltip("Out of stock"));
+            if (menuItem.getStock() <= 0) {
+                disableAddButton(itemVBox);
             }
 
-            counter++;
+            itemsInRow++;
         }
     }
 
@@ -135,121 +164,153 @@ public class CustomerController {
         VBox itemVBox = new VBox(10);
         itemVBox.setAlignment(Pos.CENTER);
         ImageView imageView = createImageView(menuItem.getImagePath());
-        Text itemName = new Text(menuItem.getName());
-        itemName.setFont(Font.font("System", FontWeight.BOLD, 12));
-
-        Text itemPrice = new Text(String.format("RM %.2f", menuItem.getPrice()));
-        Button addButton = new Button("Add");
-        addButton.setId("addButton");
-        addButton.setOnAction(this::handleAddItemAction);
-        addButton.setUserData(new OrderItem(menuItem.getProductId(), menuItem.getName(), 1, menuItem.getPrice()));
-
-        if (menuItem.getStock() <= 0) {
-            addButton.setDisable(true);
-            addButton.setTooltip(new Tooltip("Out of stock"));
-        }
+        Text itemName = createItemNameText(menuItem.getName());
+        Text itemPrice = createItemPriceText(menuItem.getPrice());
+        Button addButton = createAddButton(menuItem);
 
         itemVBox.getChildren().addAll(imageView, itemName, itemPrice, addButton);
         return itemVBox;
     }
 
     private ImageView createImageView(String imagePath) {
-        ImageView imageView;
         try {
-            Image image;
-            if (!imagePath.startsWith("http") && !imagePath.startsWith("file:")) {
-                URL imageUrl = getClass().getResource(imagePath);
-                if (imageUrl != null) {
-                    image = new Image(imageUrl.toExternalForm());
-                } else {
-                    throw new IllegalArgumentException("Image not found: " + imagePath);
-                }
-            } else {
-                image = new Image(imagePath);
-            }
-            imageView = new ImageView(image);
-            imageView.setFitHeight(115);
-            imageView.setFitWidth(115);
+            Image image = new Image(imagePath);
+            ImageView imageView = new ImageView(image);
+            imageView.setFitHeight(IMAGE_SIZE);
+            imageView.setFitWidth(IMAGE_SIZE);
             imageView.setSmooth(true);
-
+            return imageView;
         } catch (Exception e) {
-            e.printStackTrace();
-            imageView = new ImageView(new Image("logo.png"));
-            imageView.setFitHeight(115);
-            imageView.setFitWidth(115);
-            imageView.setSmooth(true);
+            System.err.println("Error loading image: " + e.getMessage());
+            AlertUtils.showErrorAlert("Image Load Error", "Failed to load image.");
+            return createDefaultImageView();
         }
+    }
+
+    private ImageView createDefaultImageView() {
+        Image defaultImage = new Image("logo.png");
+        ImageView imageView = new ImageView(defaultImage);
+        imageView.setFitHeight(IMAGE_SIZE);
+        imageView.setFitWidth(IMAGE_SIZE);
+        imageView.setSmooth(true);
         return imageView;
     }
 
-    // Sign Out Button
-    @FXML
-    private void handleSignOutAction() {
-        if (AlertUtils.showConfirmationAlert("Sign Out", "Are you sure you want to sign out?")) {
-           try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/login.fxml")); // Correct the path if necessary.
-                Parent loginView = loader.load();
+    private Text createItemNameText(String name) {
+        Text itemName = new Text(name);
+        itemName.setFont(Font.font("System", FontWeight.BOLD, 12));
+        return itemName;
+    }
 
-                Stage stage = (Stage) signOutButton.getScene().getWindow();
-                stage.setScene(new Scene(loginView));
-                stage.show();
+    private Text createItemPriceText(double price) {
+        return new Text(String.format("RM %.2f", price));
+    }
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+    private Button createAddButton(MenuItem menuItem) {
+        Button addButton = new Button("Add");
+        addButton.setId("addButton");
+        addButton.setOnAction(this::handleAddItemAction);
+        addButton.setUserData(new OrderItem(menuItem.getProductId(), menuItem.getName(), 1, menuItem.getPrice()));
+        return addButton;
+    }
+
+    private void disableAddButton(VBox itemVBox) {
+        Button addButton = (Button) itemVBox.lookup("#addButton");
+        if (addButton != null) {
+            addButton.setDisable(true);
+            addButton.setTooltip(new Tooltip("Out of stock"));
         }
     }
+
+
+
+
 
     // Add Item Button
     @FXML
     private void handleAddItemAction(ActionEvent event) {
         Button addButton = (Button) event.getSource();
-        MenuItem menuItem = menuDao.getMenuItemsByName(((OrderItem) addButton.getUserData()).getProductName());
-
-        if (menuItem != null) {
-            if (menuItem.getStock() > 0) {
-                OrderItem orderItem = new OrderItem(menuItem.getProductId(), menuItem.getName(), 1, menuItem.getPrice());
-                addOrUpdateOrderItem(orderItem, menuItem);
+        OrderItem itemToAdd = extractOrderItemFromButton(addButton);
+        if (itemToAdd != null) {
+            MenuItem menuItem = findMenuItemByName(itemToAdd.getProductName());
+            if (menuItem != null) {
+                if (menuItem.getStock() > 0) {
+                    addOrUpdateOrderItem(itemToAdd, menuItem);
+                } else {
+                    AlertUtils.showErrorAlert("Out of Stock", "The selected item is out of stock.");
+                }
             } else {
-                AlertUtils.showErrorAlert("Out of Stock", "The selected item is out of stock.");
+                AlertUtils.showErrorAlert("Item Not Found", "Could not find the item in the menu.");
             }
-        } else {
-            AlertUtils.showErrorAlert("Item Not Found", "Could not find the items in the menu.");
         }
     }
 
-    // Helper method to add or update an OrderItem in the order
-    private void addOrUpdateOrderItem(OrderItem itemToAdd, MenuItem menuItem) {
-        Optional<OrderItem> existingOrderItem = orderItems.stream()
-                .filter(orderItem -> orderItem.getProductName().equals(itemToAdd.getProductName()))
-                .findFirst();
-
-        if (existingOrderItem.isPresent()) {
-            OrderItem existingItem = existingOrderItem.get();
-            if (existingItem.getQuantity() + 1 <= menuItem.getStock()) {
-                existingItem.setQuantity(existingItem.getQuantity() + 1);
-            } else {
-                AlertUtils.showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
-                return;
-            }
+    private OrderItem extractOrderItemFromButton(Button addButton) {
+        Object userData = addButton.getUserData();
+        if (userData instanceof OrderItem) {
+            return (OrderItem) userData;
         } else {
-            if (menuItem.getStock() > 0) {
-                orderItems.add(new OrderItem(menuItem.getProductId(), menuItem.getName(), 1, menuItem.getPrice()));
-            } else {
-                AlertUtils.showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
-                return;
+            return null;
+        }
+    }
+
+    private MenuItem findMenuItemByName(String productName) {
+        return menuDao.getMenuItemsByName(productName);
+    }
+
+    private void addOrUpdateOrderItem(OrderItem itemToAdd, MenuItem menuItem) {
+        Optional<OrderItem> existingOrderItem = findExistingOrderItem(itemToAdd);
+        if (existingOrderItem.isPresent()) {
+            updateExistingOrderItem(existingOrderItem.get(), menuItem);
+        } else {
+            createNewOrderItem(itemToAdd, menuItem);
+        }
+        updateOrderDetails();
+    }
+
+    private Optional<OrderItem> findExistingOrderItem(OrderItem itemToAdd) {
+        for (OrderItem orderItem : orderItems) {
+            if (orderItem.getProductName().equals(itemToAdd.getProductName())) {
+                return Optional.of(orderItem);
             }
         }
+        return Optional.empty();
+    }
 
-        orderDetailsTable.refresh(); // Refresh the TableView to show updated quantities
+    private void updateExistingOrderItem(OrderItem existingItem, MenuItem menuItem) {
+        if (existingItem.getQuantity() + 1 <= menuItem.getStock()) {
+            existingItem.setQuantity(existingItem.getQuantity() + 1);
+        } else {
+            AlertUtils.showErrorAlert("Stock Error", "Not enough stock for " + existingItem.getProductName());
+        }
+    }
+
+    private void createNewOrderItem(OrderItem itemToAdd, MenuItem menuItem) {
+        if (menuItem.getStock() > 0) {
+            orderItems.add(new OrderItem(menuItem.getProductId(), menuItem.getName(), 1, menuItem.getPrice()));
+        } else {
+            AlertUtils.showErrorAlert("Stock Error", "Not enough stock for " + itemToAdd.getProductName());
+        }
+    }
+
+    private void updateOrderDetails() {
+        orderDetailsTable.refresh();
         totalText.setText(String.format("Total: RM%.2f", calculateSubtotal()));
     }
+
+
+
+
 
     // Remove Button
     private void handleRemoveItemAction() {
         TableColumn<OrderItem, Void> actionCol = new TableColumn<>("Actions");
+        actionCol.setCellFactory(createButtonCellFactory());
+        orderDetailsTable.getColumns().add(actionCol);
+    }
 
-        Callback<TableColumn<OrderItem, Void>, TableCell<OrderItem, Void>> cellFactory = param -> new TableCell<>() {
+    private Callback<TableColumn<OrderItem, Void>, TableCell<OrderItem, Void>> createButtonCellFactory() {
+        return param -> new TableCell<>() {
             private final Button btnRemove = new Button("Remove");
 
             {
@@ -270,11 +331,10 @@ public class CustomerController {
                 }
             }
         };
-
-        actionCol.setCellFactory(cellFactory);
-
-        orderDetailsTable.getColumns().add(actionCol);
     }
+
+
+
 
     // Clear Order Button
     @FXML
@@ -288,26 +348,39 @@ public class CustomerController {
         }
     }
 
+
+
     // Confirm Order Button
     @FXML
     private void handleConfirmOrderAction() {
+        if (!validateOrder()) {
+            return;
+        }
+
+        processOrder();
+        refreshUI();
+    }
+
+    private boolean validateOrder() {
         if (orderItems.isEmpty()) {
             AlertUtils.showConfirmationAlert("Empty Order", "No items in the order.");
-            return;
+            return false;
         }
 
         if (!AlertUtils.showConfirmationAlert("Confirm Order", "Do you want to confirm the order?")) {
-            return;
+            return false;
         }
 
-        if (!checkStockAvailability()) {
-            return;
-        }
+        return checkStockAvailability();
+    }
 
+    private void processOrder() {
         updateStock();
         createOrder();
         showReceiptWindow();
+    }
 
+    private void refreshUI() {
         orderItems.clear();
         orderDetailsTable.refresh();
         totalText.setText(String.format("Total: RM%.2f", calculateSubtotal()));
@@ -352,26 +425,7 @@ public class CustomerController {
         // Add current orderItems to allConfirmedOrders
         allConfirmedOrders.addAll(orderItems);
 
-        // Show order confirmed
         AlertUtils.showInformationAlert("Order Confirmed", "Order has been confirmed!");
-    }
-
-    private double calculateSubtotal() {
-        return orderItems.stream()
-                .mapToDouble(item -> item.getQuantity() * item.getPrice())
-                .sum();
-    }
-
-    private double calculateServiceCharge(double subtotal) {
-        return subtotal * 0.10;
-    }
-
-    private double calculateTax(double subtotal) {
-        return subtotal * 0.06;
-    }
-
-    private double calculateTotal(double subtotal, double serviceCharge, double tax) {
-        return subtotal + serviceCharge + tax;
     }
 
     private void showReceiptWindow() {
@@ -394,18 +448,21 @@ public class CustomerController {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.showAndWait();
         } catch (IOException e) {
-            e.printStackTrace();
-            // Handle exception
+            System.err.println("Failed to load the receipt view: " + e.getMessage());
+            AlertUtils.showErrorAlert("Loading Error", "Failed to load the receipt view.");
         }
     }
+
+
+
+
+
 
     // Receipt Button Action
     @FXML
     private void handleReceiptAction() {
         if (allConfirmedOrders.isEmpty()) {
-            Alert noOrdersAlert = new Alert(Alert.AlertType.INFORMATION, "There are no past orders to display.");
-            noOrdersAlert.setHeaderText("No Past Orders");
-            noOrdersAlert.showAndWait();
+            AlertUtils.showInformationAlert("No Past Orders", "There are no past orders to display.");
             return;
         }
 
@@ -415,9 +472,10 @@ public class CustomerController {
             ReceiptController controller = loader.getController();
 
             // Calculate the totals from allConfirmedOrders
-            double subtotal = allConfirmedOrders.stream()
-                    .mapToDouble(item -> item.getQuantity() * item.getPrice())
-                    .sum();
+            double subtotal = 0.0;
+            for (OrderItem orderItem : allConfirmedOrders) {
+                subtotal += orderItem.getQuantity() * orderItem.getPrice();
+            }
             double serviceCharge = subtotal * 0.10;
             double tax = subtotal * 0.06;
             double total = subtotal + serviceCharge + tax;
@@ -432,8 +490,32 @@ public class CustomerController {
             stage.initModality(Modality.APPLICATION_MODAL);
             stage.showAndWait();
         } catch (IOException e) {
-            e.printStackTrace();
-            // Handle exception
+            System.err.println("Failed to load the receipt view: " + e.getMessage());
+            AlertUtils.showErrorAlert("Loading Error", "Failed to load the receipt view.");
         }
+    }
+
+
+    double calculateSubtotal() {
+        double subtotal = 0.0;
+
+        for (OrderItem item : orderItems) {
+            double itemTotal = item.getQuantity() * item.getPrice();
+            subtotal += itemTotal;
+        }
+
+        return subtotal;
+    }
+
+    double calculateServiceCharge(double subtotal) {
+        return subtotal * 0.10;
+    }
+
+    double calculateTax(double subtotal) {
+        return subtotal * 0.06;
+    }
+
+    double calculateTotal(double subtotal, double serviceCharge, double tax) {
+        return subtotal + serviceCharge + tax;
     }
 }

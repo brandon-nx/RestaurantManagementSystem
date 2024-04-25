@@ -133,6 +133,38 @@ public class InventoryController {
         return button;
     }
 
+
+
+
+    // Add product action
+    @FXML
+    private void handleAddAction() {
+        if (!validateProductInputs()) {
+            return;
+        }
+
+        MenuItem newItem = createMenuItemFromInputs();
+        boolean success = menuDao.addMenuItems(newItem);
+
+        if (success) {
+            handleClearAction();
+            loadProducts();
+            AlertUtils.showInformationAlert("Success", "Product added successfully.");
+        } else {
+            AlertUtils.showErrorAlert("Add Item Failed", "Could not add the new menu item to the database.");
+        }
+    }
+
+    private MenuItem createMenuItemFromInputs() {
+        String name = productNameField.getText().trim();
+        String category = typeComboBox.getValue();
+        String status = statusComboBox.getValue();
+        int stock = Integer.parseInt(stockField.getText().trim());
+        double price = Double.parseDouble(priceField.getText().trim());
+
+        return new MenuItem(null, name, price, currentImagePath, category, stock, status);
+    }
+
     // Delete product action
     private void handleDeleteAction(TableCell<MenuItem, Void> cell) {
         MenuItem item = cell.getTableView().getItems().get(cell.getIndex());
@@ -161,39 +193,6 @@ public class InventoryController {
         productTable.setItems(FXCollections.observableArrayList(products));
     }
 
-
-
-
-
-    // Add product action
-    @FXML
-    private void handleAddAction() {
-        if (!isValidateProductInputs()) {
-            return;
-        }
-
-        MenuItem newItem = createMenuItemFromInputs();
-        boolean success = menuDao.addMenuItems(newItem);
-
-        if (success) {
-            handleClearAction();
-            loadProducts();
-            AlertUtils.showInformationAlert("Success", "Product added successfully.");
-        } else {
-            AlertUtils.showErrorAlert("Add Item Failed", "Could not add the new menu item to the database.");
-        }
-    }
-
-    private MenuItem createMenuItemFromInputs() {
-        String name = productNameField.getText().trim();
-        String category = typeComboBox.getValue();
-        String status = statusComboBox.getValue();
-        int stock = Integer.parseInt(stockField.getText().trim());
-        double price = Double.parseDouble(priceField.getText().trim());
-
-        return new MenuItem(null, name, price, currentImagePath, category, stock, status);
-    }
-
     // Update product action
     @FXML
     private void handleUpdateAction() {
@@ -204,7 +203,7 @@ public class InventoryController {
             AlertUtils.showInformationAlert("No Change", "No information has changed.");
             return;
         }
-        if (!isValidateProductInputs()) return;
+        if (!validateProductInputs()) return;
 
         if ( AlertUtils.showConfirmationAlert("Confirm Update", "Are you sure you want to update the selected product?")) {
             try {
@@ -251,18 +250,28 @@ public class InventoryController {
     // Import image action
     @FXML
     private void handleImportAction() {
+        File file = chooseFile();
+        if (file != null) {
+            setImageForProduct(file.toURI().toString());
+        }
+    }
+
+    private File chooseFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().addAll(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
         );
+        return fileChooser.showOpenDialog(null);
+    }
 
-        File file = fileChooser.showOpenDialog(null);
-
-        if (file != null) {
-            Image image = new Image(file.toURI().toString());
+    private void setImageForProduct(String imagePath) {
+        if (imagePath == null || imagePath.isEmpty()) {
+            productImageView.setImage(null);
+        } else {
+            Image image = new Image(imagePath);
             productImageView.setImage(image);
-            currentImagePath = file.toURI().toString();
         }
+        currentImagePath = imagePath;
     }
 
 
@@ -270,45 +279,49 @@ public class InventoryController {
 
 
 
-    // Check validations
-    private boolean isValidateProductInputs() {
-        if (productNameField.getText().trim().isEmpty() ||
+
+    // Check validations logic
+    private boolean validateProductInputs() {
+        if (fieldsAreEmpty()) {
+            AlertUtils.showErrorAlert("Input Error", "Please fill in all fields and import an image.");
+            return false;
+        }
+        if (!isValidNumber(stockField.getText().trim(), "stock") ||
+                !isValidNumber(priceField.getText().trim(), "price")) {
+            return false;
+        }
+        if (!isValidSelection(typeComboBox, VALID_CATEGORIES, "category") ||
+                !isValidSelection(statusComboBox, VALID_STATUSES, "status")) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean fieldsAreEmpty() {
+        return (productNameField.getText().trim().isEmpty() ||
                 stockField.getText().trim().isEmpty() ||
                 priceField.getText().trim().isEmpty() ||
                 typeComboBox.getSelectionModel().isEmpty() ||
                 statusComboBox.getSelectionModel().isEmpty() ||
-                currentImagePath == null || currentImagePath.isEmpty()) {
-            AlertUtils.showErrorAlert("Input Error", "Please fill in all the fields and import an image.");
-            return false;
-        }
+                (currentImagePath == null || currentImagePath.isEmpty()));
+    }
 
+    boolean isValidNumber(String numberStr, String fieldName) {
         try {
-            int stock = Integer.parseInt(stockField.getText().trim());
+            double number = Double.parseDouble(numberStr);
+            return true;
         } catch (NumberFormatException e) {
-            AlertUtils.showErrorAlert("Input Error", "Please enter a valid number for stock.");
+            AlertUtils.showErrorAlert("Input Error", "Please enter a valid number for " + fieldName + ".");
             return false;
         }
+    }
 
-        try {
-            double price = Double.parseDouble(priceField.getText().trim());
-            price = Math.round(price * 100.0) / 100.0;
-        } catch (NumberFormatException e) {
-            AlertUtils.showErrorAlert("Input Error", "Please enter a valid price.");
+    private boolean isValidSelection(ComboBox<String> comboBox, List<String> validOptions, String fieldName) {
+        String selection = comboBox.getValue();
+        if (selection == null || !validOptions.contains(selection)) {
+            AlertUtils.showErrorAlert("Input Error", "Please select a valid " + fieldName + ".");
             return false;
         }
-
-        String selectedCategory = typeComboBox.getValue();
-        if (selectedCategory == null || !VALID_CATEGORIES.contains(selectedCategory)) {
-            AlertUtils.showErrorAlert("Input Error", "Please select a valid category.");
-            return false;
-        }
-
-        String selectedStatus = statusComboBox.getValue();
-        if (selectedStatus == null || !VALID_STATUSES.contains(selectedStatus)) {
-            AlertUtils.showErrorAlert("Input Error", "Please select a valid status.");
-            return false;
-        }
-
         return true;
     }
 

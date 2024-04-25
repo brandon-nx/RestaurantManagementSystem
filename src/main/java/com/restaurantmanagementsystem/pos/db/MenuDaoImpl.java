@@ -148,7 +148,7 @@ public class MenuDaoImpl implements MenuDao {
 
     @Override
     public List<MenuItem> getMenuItemsByCategory(String category) {
-        String sql = "SELECT * FROM menu_items WHERE category = ?";
+        String sql = "SELECT * FROM menu_items WHERE category = ? AND status = 'available'";
         List<MenuItem> menuItems = new ArrayList<>();
 
         try (Connection conn = DatabaseConnector.getConnection();

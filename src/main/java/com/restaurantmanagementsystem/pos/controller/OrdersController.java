@@ -85,7 +85,7 @@ public class OrdersController {
         }
     }
 
-    private void loadOrders() {
+    void loadOrders() {
         List<Order> orders = orderDao.getAllOrders();
         ordersTableView.setItems(FXCollections.observableArrayList(orders));
     }

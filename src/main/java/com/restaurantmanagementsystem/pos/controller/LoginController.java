@@ -19,16 +19,16 @@ import java.io.IOException;
 public class LoginController {
 
     @FXML
-    private TextField usernameField;
+    TextField usernameField;
     @FXML
-    private PasswordField passwordField;
+    PasswordField passwordField;
     @FXML
     private Hyperlink createAccountLink;
 
     private final LoginDao loginDao = new LoginDaoImpl();
 
     @FXML
-    private void handleSwitchToRegister() {
+    void handleSwitchToRegister() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/register.fxml"));
             Parent loginView = loader.load();
@@ -42,9 +42,12 @@ public class LoginController {
     }
 
     @FXML
-    private void handleLoginButtonAction() {
+    void handleLoginButtonAction() {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
+        if (username.isEmpty() || password.isEmpty()) {
+            AlertUtils.showErrorAlert("Login Error", "Username and password cannot be empty");
+        }
 
         try {
             UserAuthenticationResult result = loginDao.authenticate(username, password);

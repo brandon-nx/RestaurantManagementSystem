@@ -60,18 +60,14 @@ public class AdminController {
     private void handleSignOutAction() {
         if (AlertUtils.showConfirmationAlert("Sign Out", "Are you sure you want to sign out?")) {
             try {
-                signOut();
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/login.fxml"));
+                Parent loginView = loader.load();
+                Stage stage = (Stage) mainBorderPane.getScene().getWindow();
+                stage.setScene(new Scene(loginView));
+                stage.show();
             } catch (IOException e) {
                 AlertUtils.showErrorAlert("Failed to Sign Out", e.getMessage());
             }
         }
-    }
-
-    private void signOut() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/restaurantmanagementsystem/pos/view/login.fxml"));
-        Parent loginView = loader.load();
-        Stage stage = (Stage) mainBorderPane.getScene().getWindow();
-        stage.setScene(new Scene(loginView));
-        stage.show();
     }
 }
