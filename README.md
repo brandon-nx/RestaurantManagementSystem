@@ -16,62 +16,32 @@
 Welcome to the Restaurant Management System POS. This manual provides a step-by-step guide on how to use the system, including login, registration, ordering food, viewing receipts, and managing the restaurant’s backend as an admin.
 
 ## Login Page
-![Login Page](path/to/your/image1.jpg)
+![Picture1RMS](https://github.com/brandon-nx/RestaurantManagementSystem/assets/139194109/6cc17192-a894-45b4-9adc-65695afccef2)
 
-1. **Username:** Enter your username.
-2. **Password:** Enter your password.
-3. **Login Button:** Click to log in to the system.
-4. **Forgot Password:** Click if you have forgotten your password.
 
 ## Registration Page
-![Registration Page](path/to/your/image2.jpg)
+![Picture2RMS](https://github.com/brandon-nx/RestaurantManagementSystem/assets/139194109/ee4e87dd-6431-4092-a1f9-7524b2a74d07)
 
-1. **Username:** Enter a unique username.
-2. **Email:** Enter your email address.
-3. **Password:** Create a secure password.
-4. **Confirm Password:** Re-enter your password for confirmation.
-5. **Register Button:** Click to create your account.
 
 ## Customer Dashboard
-![Customer Dashboard](path/to/your/image3.jpg)
+![Picture3RMS](https://github.com/brandon-nx/RestaurantManagementSystem/assets/139194109/1a8d4c6e-5fea-4805-a2c8-9dc062c0cf6d)
 
-1. **Menu Items:** Browse available food items.
-2. **Order Button:** Click to add items to your order.
-3. **Cart:** View and manage items in your cart.
-4. **Checkout Button:** Click to proceed to payment and finalize your order.
 
 ## Receipt
-![Receipt](path/to/your/image4.jpg)
+![Picture4RMS](https://github.com/brandon-nx/RestaurantManagementSystem/assets/139194109/b8b95192-bfe2-46a4-a641-bed553a191fa)
 
-1. **Order Details:** Review the details of your order, including items, quantities, and prices.
-2. **Total Amount:** The total amount to be paid.
-3. **Payment Method:** Select your payment method.
-4. **Confirm Order:** Click to confirm and place your order.
 
 ## Admin Dashboard - Report Page
-![Admin Dashboard - Report Page](path/to/your/image5.jpg)
+![Picture5RMS](https://github.com/brandon-nx/RestaurantManagementSystem/assets/139194109/fceeb8c2-5e47-41f9-9bae-24992536b86a)
 
-1. **Daily Report:** View daily sales and statistics.
-2. **Weekly Report:** View weekly sales and statistics.
-3. **Monthly Report:** View monthly sales and statistics.
-4. **Annual Report:** View annual sales and statistics.
-5. **Best Seller:** View the best-selling menu items.
-6. **All Menu Item Sales:** View sales data for all menu items.
 
 ## Admin Dashboard - Inventory Page
-![Admin Dashboard - Inventory Page](path/to/your/image6.jpg)
+![Picture6RMS](https://github.com/brandon-nx/RestaurantManagementSystem/assets/139194109/7123be86-b3e3-455c-84a7-b62b62588000)
 
-1. **Create Menu Item:** Add new menu items to the inventory.
-2. **Read Menu Items:** View details of all menu items.
-3. **Update Menu Item:** Edit existing menu items.
-4. **Delete Menu Item:** Remove menu items from the inventory.
 
 ## Admin Dashboard - Orders Page
-![Admin Dashboard - Orders Page](path/to/your/image7.jpg)
+![Picture7RMS](https://github.com/brandon-nx/RestaurantManagementSystem/assets/139194109/3a045f62-94e6-4e36-8041-6fb25b9ad9eb)
 
-1. **Pending Orders:** View all pending orders.
-2. **Complete Order:** Mark orders as completed once they are fulfilled.
-3. **Cancel Order:** Cancel orders if necessary.
 
 ## Conclusion
 This user manual provides a comprehensive guide to using the Restaurant Management System POS. For any further assistance, please contact our support team. Enjoy managing your restaurant efficiently!
@@ -108,7 +78,3 @@ The below are the username and password for the login credentials:
 ### Note
 - Ensure that the database connection settings in the application code (`MainApp.java`) match your MySQL database configuration.
 - Make sure all dependencies are resolved in your IntelliJ project.
-
----
-
-Replace `path/to/your/imageX.jpg` with the actual paths to your images. This README file provides a comprehensive guide to using and setting up your Restaurant Management System POS.
