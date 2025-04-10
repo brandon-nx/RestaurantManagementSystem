@@ -8,7 +8,7 @@ public class DatabaseConnector {
 
     private static final String DATABASE_URL = "jdbc:mysql://localhost:3306/restaurant_pos";
     private static final String DATABASE_USER = "root";
-    private static final String DATABASE_PASSWORD = "";
+    private static final String DATABASE_PASSWORD = "Bran0767#";
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
